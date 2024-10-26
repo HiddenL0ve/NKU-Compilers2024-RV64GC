@@ -26,7 +26,7 @@ public:
     Exp(Expression add) : addexp(add) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // AddExp + MulExp
@@ -37,7 +37,7 @@ public:
     AddExp_plus(Expression add, Expression mul) : addexp(add), mulexp(mul) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // AddExp - MulExp
@@ -48,7 +48,7 @@ public:
     AddExp_sub(Expression add, Expression mul) : addexp(add), mulexp(mul) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // MulExp * UnaryExp
@@ -59,7 +59,7 @@ public:
     MulExp_mul(Expression mul, Expression unary) : mulexp(mul), unary_exp(unary) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // MulExp / UnaryExp
@@ -70,7 +70,7 @@ public:
     MulExp_div(Expression mul, Expression unary) : mulexp(mul), unary_exp(unary) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // MulExp % UnaryExp
@@ -81,7 +81,7 @@ public:
     MulExp_mod(Expression mul, Expression unary) : mulexp(mul), unary_exp(unary) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // RelExp <= AddExp
@@ -93,7 +93,7 @@ public:
     RelExp_leq(Expression relexp, Expression addexp) : relexp(relexp), addexp(addexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // RelExp < AddExp
@@ -104,7 +104,7 @@ public:
     RelExp_lt(Expression relexp, Expression addexp) : relexp(relexp), addexp(addexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // RelExp >= AddExp
@@ -115,7 +115,7 @@ public:
     RelExp_geq(Expression relexp, Expression addexp) : relexp(relexp), addexp(addexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // RelExp > AddExp
@@ -126,7 +126,7 @@ public:
     RelExp_gt(Expression relexp, Expression addexp) : relexp(relexp), addexp(addexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // EqExp == RelExp
@@ -137,7 +137,7 @@ public:
     EqExp_eq(Expression eqexp, Expression relexp) : eqexp(eqexp), relexp(relexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // EqExp != RelExp
@@ -148,7 +148,7 @@ public:
     EqExp_neq(Expression eqexp, Expression relexp) : eqexp(eqexp), relexp(relexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // LAndExp && EqExp
@@ -159,7 +159,7 @@ public:
     LAndExp_and(Expression landexp, Expression eqexp) : landexp(landexp), eqexp(eqexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // LOrExp || LAndExp
@@ -171,7 +171,7 @@ public:
     LOrExp_or(Expression lorexp, Expression landexp) : lorexp(lorexp), landexp(landexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // AddExp
@@ -181,7 +181,7 @@ public:
     ConstExp(Expression addexp) : addexp(addexp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // lval   name{[dim]}   eg. a[4][5+4][3+4*9]
@@ -195,7 +195,7 @@ public:
     Lval(Symbol n, std::vector<Expression> *d) : name(n), dims(d) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 //{Exp,Exp,Exp,Exp}
@@ -205,7 +205,7 @@ public:
     FuncRParams(std::vector<Expression> *p) : params(p) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // name(FuncRParams)
@@ -216,7 +216,7 @@ public:
     Func_call(Symbol n, Expression f) : name(n), funcr_params(f) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // + UnaryExp
@@ -226,7 +226,7 @@ public:
     UnaryExp_plus(Expression unary_exp) : unary_exp(unary_exp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // - UnaryExp
@@ -236,7 +236,7 @@ public:
     UnaryExp_neg(Expression unary_exp) : unary_exp(unary_exp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long  int pad);
 };
 
 // ! UnaryExp
@@ -246,16 +246,16 @@ public:
     UnaryExp_not(Expression unary_exp) : unary_exp(unary_exp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class IntConst : public __Expression {
 public:
-    int val;
-    IntConst(int v) : val(v) {}
+    long long int val;
+    IntConst(long long int v) : val(v) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long  int pad);
 };
 
 class FloatConst : public __Expression {
@@ -264,7 +264,7 @@ public:
     FloatConst(float v) : val(v) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class StringConst : public __Expression {
@@ -273,7 +273,7 @@ public:
     StringConst(Symbol s) : str(s) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 //( Exp )
@@ -283,7 +283,7 @@ public:
     PrimaryExp_branch(Expression exp) : exp(exp) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class __Block;
@@ -298,7 +298,7 @@ class null_stmt : public __Stmt {
 public:
     void codeIR() {}
     void TypeCheck() {}
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // lval = exp;
@@ -310,7 +310,7 @@ public:
     assign_stmt(Expression l, Expression e) : lval(l), exp(e) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // exp;
@@ -320,7 +320,7 @@ public:
     expr_stmt(Expression e) : exp(e) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // block
@@ -330,7 +330,7 @@ public:
     block_stmt(Block b) : b(b) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class ifelse_stmt : public __Stmt {
@@ -342,7 +342,7 @@ public:
     ifelse_stmt(Expression c, Stmt i, Stmt t) : Cond(c), ifstmt(i), elsestmt(t) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // only if
@@ -354,7 +354,7 @@ public:
     if_stmt(Expression c, Stmt i) : Cond(c), ifstmt(i) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class while_stmt : public __Stmt {
@@ -365,7 +365,7 @@ public:
     while_stmt(Expression c, Stmt b) : Cond(c), body(b) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // continue;
@@ -373,7 +373,7 @@ class continue_stmt : public __Stmt {
 public:
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // break;
@@ -381,7 +381,7 @@ class break_stmt : public __Stmt {
 public:
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // return return_exp;
@@ -391,14 +391,14 @@ public:
     return_stmt(Expression r) : return_exp(r) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class return_stmt_void : public __Stmt {
 public:
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 class __Decl;
 typedef __Decl *Decl;
@@ -416,7 +416,7 @@ public:
     ConstInitVal(std::vector<InitVal> *i) : initval(i) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class ConstInitVal_exp : public __InitVal {
@@ -425,7 +425,7 @@ public:
     ConstInitVal_exp(Expression e) : exp(e) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // InitVal -> {InitVal,InitVal,InitVal,...}
@@ -435,7 +435,7 @@ public:
     VarInitVal(std::vector<InitVal> *i) : initval(i) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class VarInitVal_exp : public __InitVal {
@@ -444,7 +444,7 @@ public:
     VarInitVal_exp(Expression e) : exp(e) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class __Def : public tree_node {
@@ -462,7 +462,7 @@ public:
 
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class VarDef : public __Def {
@@ -475,7 +475,7 @@ public:
 
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class ConstDef : public __Def {
@@ -488,7 +488,7 @@ public:
 
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // decl basic_class
@@ -506,7 +506,7 @@ public:
 
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // const var definition
@@ -519,7 +519,7 @@ public:
 
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class __BlockItem : public tree_node {
@@ -533,7 +533,7 @@ public:
     BlockItem_Decl(Decl d) : decl(d) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class BlockItem_Stmt : public __BlockItem {
@@ -542,7 +542,7 @@ public:
     BlockItem_Stmt(Stmt s) : stmt(s) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // block
@@ -554,7 +554,7 @@ public:
     __Block(std::vector<BlockItem> *i) : item_list(i) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 // FuncParam -> Type IDENT
@@ -579,7 +579,7 @@ public:
     __FuncFParam(Type::ty t) : type_decl(t) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 typedef __FuncFParam *FuncFParam;
 
@@ -598,7 +598,7 @@ public:
     }
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 typedef __FuncDef *FuncDef;
 
@@ -613,7 +613,7 @@ public:
     CompUnit_Decl(Decl d) : decl(d) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class CompUnit_FuncDef : public __CompUnit {
@@ -622,7 +622,7 @@ public:
     CompUnit_FuncDef(FuncDef f) : func_def(f) {}
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 
 class __Program : public tree_node {
@@ -632,7 +632,7 @@ public:
     __Program(std::vector<CompUnit> *c) { comp_list = c; }
     void codeIR();
     void TypeCheck();
-    void printAST(std::ostream &s, int pad);
+    void printAST(std::ostream &s, long long int pad);
 };
 typedef __Program *Program;
 #endif

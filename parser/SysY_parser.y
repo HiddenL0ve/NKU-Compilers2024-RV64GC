@@ -15,12 +15,16 @@ extern IdTable id_table;
     char* error_msg;
     Symbol symbol_token;
     double float_token; // 对于SysY的浮点常量，我们需要先以double类型计算，再在语法树节点创建的时候转为float
-    int int_token;
+    long long int int_token;
+    
     Program program;  
     CompUnit comp_unit;  std::vector<CompUnit>* comps; 
-    Decl decl;
+    Decl decl;//声明 
     Def def;  std::vector<Def>* defs;
     FuncDef func_def;
+
+
+
     Expression expression;  std::vector<Expression>* expressions;
     Stmt stmt;
     Block block;
@@ -37,18 +41,24 @@ extern IdTable id_table;
 %token CONST IF ELSE WHILE NONE_TYPE INT FLOAT FOR
 %token RETURN BREAK CONTINUE ERROR TODO
 
+
+
 //give the type of nonterminals
 %type <program> Program
 %type <comp_unit> CompUnit 
 %type <comps> Comp_list
-%type <decl> Decl VarDecl ConstDecl
+%type <decl> Decl VarDecl ConstDecl  //变量声明 常量声明
 %type <def> ConstDef VarDef
 %type <defs> ConstDef_list VarDef_list 
 %type <func_def> FuncDef 
 %type <expression> Exp LOrExp AddExp MulExp RelExp EqExp LAndExp UnaryExp PrimaryExp
 %type <expression> ConstExp Lval FuncRParams Cond
-%type <expression> IntConst FloatConst
+%type <expression> IntConst FloatConst 
 %type <expressions> Exp_list;
+
+%type <expressions> Array_list ConstArray_list
+%type <expression> Array  ConstArray
+
 %type <stmt> Stmt 
 %type <block> Block
 %type <block_item> BlockItem
@@ -109,6 +119,10 @@ VarDecl
     $$ = new VarDecl(Type::INT,$2); 
     $$->SetLineNumber(line_number);
 }
+|FLOAT VarDef_list ';'{
+    $$= new VarDecl(Type::FLOAT,$2);
+    $$->SetLineNumber(line_number);
+}
 ;
 
 // TODO(): 考虑变量定义更多情况  
@@ -118,16 +132,37 @@ ConstDecl
     $$ = new ConstDecl(Type::INT,$3); 
     $$->SetLineNumber(line_number);
 }
+|CONST FLOAT ConstDef_list ';'{
+    $$ = new ConstDecl(Type::FLOAT,$3); 
+    $$->SetLineNumber(line_number);
+}
 ;
 
 // TODO(): 考虑变量定义更多情况  
 
 VarDef_list
-:TODO{}
+:VarDef{
+    $$=new std::vector<Def>;
+    ($$)->push_back($1);
+}
+|VarDef_list ',' VarDef{
+   // $1=new std::vector<Def>;
+    ($1)->push_back($3);
+    $$=$1;
+}
+//:TODO{}
 ;
 
 ConstDef_list
-:TODO{}
+:ConstDef{
+    $$=new std::vector<Def>;
+    ($$)->push_back($1);
+}
+|ConstDef_list ',' ConstDef{
+    ($1)->push_back($3);
+    $$=$1;
+}
+//:TODO{}
 ;
 
 FuncDef
@@ -141,6 +176,24 @@ FuncDef
     $$ = new __FuncDef(Type::INT,$2,new std::vector<FuncFParam>(),$5); 
     $$->SetLineNumber(line_number);
 }
+|FLOAT IDENT '(' FuncFParams ')' Block{
+    $$ = new __FuncDef(Type::FLOAT,$2,$4,$6);
+    $$->SetLineNumber(line_number);
+}
+|FLOAT IDENT '(' ')' Block
+{
+    $$ = new __FuncDef(Type::FLOAT,$2,new std::vector<FuncFParam>(),$5); 
+    $$->SetLineNumber(line_number);
+}
+|NONE_TYPE IDENT '(' FuncFParams ')' Block{
+    $$ = new __FuncDef(Type::VOID,$2,$4,$6);
+    $$->SetLineNumber(line_number);
+}
+|NONE_TYPE IDENT '(' ')' Block
+{
+    $$ = new __FuncDef(Type::VOID,$2,new std::vector<FuncFParam>(),$5); 
+    $$->SetLineNumber(line_number);
+}
 ;
 // TODO(): 考虑函数定义更多情况    
 
@@ -149,32 +202,81 @@ VarDef
 {$$ = new VarDef($1,nullptr,$3); $$->SetLineNumber(line_number);}
 |IDENT
 {$$ = new VarDef_no_init($1,nullptr); $$->SetLineNumber(line_number);}
+|IDENT Array_list '=' VarInitVal
+{$$ = new VarDef($1,$2,$4); $$->SetLineNumber(line_number);}
+|IDENT Array_list
+{$$ = new VarDef_no_init($1,$2); $$->SetLineNumber(line_number);}
+
 ;   
 // TODO(): 考虑变量定义更多情况
 
 
 ConstDef
-:TODO{}
+:IDENT '=' ConstInitVal
+{$$ = new ConstDef($1,nullptr,$3); $$->SetLineNumber(line_number);}
+|IDENT ConstArray_list '=' ConstInitVal
+{$$ = new VarDef($1,$2,$4); $$->SetLineNumber(line_number);}
+
+//:TODO{}
 ;
 
 ConstInitVal
-:TODO{}
+:'{' '}'{$$ = new ConstInitVal(new std::vector<InitVal>()); $$->SetLineNumber(line_number);}
+
+|'{'ConstInitVal_list'}'{
+    $$=new ConstInitVal($2);
+   $$->SetLineNumber(line_number);
+}
+|ConstExp{
+    $$=new ConstInitVal_exp($1);
+    $$->SetLineNumber(line_number);
+}
+//:TODO{}
 ;
 
 VarInitVal
-:TODO{}
+//:TODO{}
+:'{' '}'{
+    $$ = new VarInitVal(new std::vector<InitVal>()); 
+    $$->SetLineNumber(line_number);
+}
+|'{'VarInitVal_list'}'{
+    $$=new VarInitVal($2);
+    $$->SetLineNumber(line_number);
+}
+|Exp{
+    $$=new VarInitVal_exp($1);
+    $$->SetLineNumber(line_number);
+}
 ;
 
 ConstInitVal_list
-:TODO{}
+:ConstInitVal{
+    $$=new std::vector<InitVal>;
+    ($$)->push_back($1);
+}
+|ConstInitVal_list ',' ConstInitVal{
+    ($1)->push_back($3);
+    $$=$1;
+}
+//:TODO{}
+
 ;
 
 VarInitVal_list
-:TODO{}
+//:TODO{}
+:VarInitVal{
+    $$=new std::vector<InitVal>;
+    ($$)->push_back($1);
+}
+|VarInitVal_list ',' VarInitVal{
+    ($1)->push_back($3);
+    $$=$1;
+}
 ;
 
 
-FuncFParams
+FuncFParams//函数形参
 :FuncFParam{
     $$ = new std::vector<FuncFParam>;
     ($$)->push_back($1);
@@ -185,9 +287,38 @@ FuncFParams
 }
 ;
 
+
+
+
 FuncFParam
 :INT IDENT{
     $$ = new __FuncFParam(Type::INT,$2,nullptr);
+    $$->SetLineNumber(line_number);
+}
+|FLOAT IDENT{
+    $$ = new __FuncFParam(Type::FLOAT,$2,nullptr);
+    $$->SetLineNumber(line_number);
+}
+|INT IDENT'[' ']'{
+  std::vector<Expression>* t = new std::vector<Expression>;
+    t->push_back(nullptr);
+    $$ = new __FuncFParam(Type::INT,$2,t);
+    $$->SetLineNumber(line_number);
+}
+|FLOAT IDENT '['  ']' {
+    std::vector<Expression>* t = new std::vector<Expression>;
+    t->push_back(nullptr);
+    $$ = new __FuncFParam(Type::FLOAT,$2,t);
+    $$->SetLineNumber(line_number);
+}
+|INT IDENT '[' ']' Array_list{
+    $5->insert($5->begin(),nullptr);
+    $$ = new __FuncFParam(Type::INT,$2,$5);
+    $$->SetLineNumber(line_number);
+}
+|FLOAT IDENT '[' ']' Array_list{
+    $5->insert($5->begin(),nullptr);
+    $$ = new __FuncFParam(Type::FLOAT,$2,$5);
     $$->SetLineNumber(line_number);
 }
 ;
@@ -205,16 +336,76 @@ Block
 ;
 
 BlockItem_list
-:TODO{}
+:BlockItem{
+    $$ = new std::vector<BlockItem>;
+    ($$)->push_back($1);
+}
+|BlockItem_list BlockItem{
+    ($1)->push_back($2);
+    $$ = $1;
+}
+//TODO{}
 ;
 
-BlockItem
-:TODO{}
+BlockItem //代码块：BlockItem_Stmt（语句）和BlockItem_Decl（声明）
+:Stmt{
+    $$ = new BlockItem_Stmt($1);
+    $$->SetLineNumber(line_number);
+}
+|Decl{
+    $$ = new BlockItem_Decl($1);
+    $$->SetLineNumber(line_number);
+}
+//TODO{}
 ;
 
-Stmt
-:TODO{}
+Stmt //语句
+:Lval '=' Exp ';' {
+    $$ = new assign_stmt($1, $3);
+    $$->SetLineNumber(line_number);
+}
+|';'{
+    $$ = new null_stmt();
+    $$->SetLineNumber(line_number);
+}
+|Block{
+    $$ = new block_stmt($1);
+    $$->SetLineNumber(line_number);
+}
+|Exp ';'{
+    $$ = new expr_stmt($1);
+    $$->SetLineNumber(line_number);
+}
+|WHILE '(' Cond ')' Stmt{
+    $$ = new while_stmt($3,$5);
+    $$->SetLineNumber(line_number);
+}
+|IF '(' Cond ')' Stmt %prec THEN{
+    $$ = new if_stmt($3,$5);
+    $$->SetLineNumber(line_number);
+}
+|IF '(' Cond ')' Stmt ELSE Stmt{
+    $$ = new ifelse_stmt($3,$5,$7);
+    $$->SetLineNumber(line_number);
+}
+|BREAK ';'{
+    $$ = new break_stmt();
+    $$->SetLineNumber(line_number);
+}
+|CONTINUE ';'{
+    $$ = new continue_stmt();
+    $$->SetLineNumber(line_number);
+}
+|RETURN Exp ';'{
+    $$ = new return_stmt($2);
+    $$->SetLineNumber(line_number);
+}
+|RETURN ';'{
+    $$ = new return_stmt_void();
+    $$->SetLineNumber(line_number);
+}
 ;
+
 
 Exp
 :AddExp{$$ = $1; $$->SetLineNumber(line_number);}
@@ -224,12 +415,38 @@ Cond
 :LOrExp{$$ = $1; $$->SetLineNumber(line_number);}
 ;
 
-Lval
-:TODO{}
+Lval//左值表达式
+//:TODO{}
+:IDENT{
+    $$=new Lval($1,nullptr);
+    $$->SetLineNumber(line_number);
+}
+|IDENT Array_list{
+    $$=new Lval($1,$2);
+    $$->SetLineNumber(line_number);
+}
 ;
 
 PrimaryExp
-:TODO{}
+//:TODO{}
+:'(' Exp')'{
+    $$=new PrimaryExp_branch($2);
+     $$->SetLineNumber(line_number);
+}
+|Lval{
+    $$ = $1; 
+    $$->SetLineNumber(line_number);
+}
+|FloatConst{
+    $$ = $1; 
+    $$->SetLineNumber(line_number);
+}
+|IntConst{
+    $$ = $1; 
+    $$->SetLineNumber(line_number);
+}
+
+
 ;
 
 IntConst
@@ -245,6 +462,7 @@ FloatConst
     $$->SetLineNumber(line_number);
 }
 ;
+
 
 UnaryExp
 :PrimaryExp{$$ = $1;}
@@ -290,16 +508,43 @@ UnaryExp
 }
 ;
 
-FuncRParams
-:TODO{}
+FuncRParams//实参列表
+:Exp_list{
+    $$ = new FuncRParams($1);
+    $$->SetLineNumber(line_number);
+}
+//TODO{}
 ;
 
 Exp_list
-:TODO{}
+:Exp{
+    $$ = new std::vector<Expression>;
+    ($$)->push_back($1);
+}
+|Exp_list ',' Exp{
+    ($1)->push_back($3);
+    $$ = $1;
+}
+//TODO{}
 ;
 
-MulExp
-:TODO{}
+MulExp  //MulExp_mul、MulExp_div、MulExp_mod
+:UnaryExp{$$ = $1;$$->SetLineNumber(line_number);}
+|MulExp '*' UnaryExp{
+    $$ = new MulExp_mul($1,$3); 
+    $$->SetLineNumber(line_number);
+    }
+|MulExp '/' UnaryExp{
+    $$ = new MulExp_div($1,$3); 
+    $$->SetLineNumber(line_number);
+    }
+|MulExp '%' UnaryExp{
+    $$ = new MulExp_mod($1,$3); 
+    $$->SetLineNumber(line_number);
+    }
+
+//TODO{}
+
 ;
 
 AddExp
@@ -317,24 +562,97 @@ AddExp
 }
 ;
 
-RelExp
-:TODO{}
+RelExp  //RelExp <= AddExp、RelExp < AddExp、RelExp >= AddExp、RelExp > AddExp
+:AddExp{
+    $$ = $1;
+    $$->SetLineNumber(line_number);
+}
+|RelExp LEQ AddExp{
+    $$=new RelExp_leq($1,$3);
+    $$->SetLineNumber(line_number);
+}
+|RelExp '<' AddExp{
+    $$=new RelExp_lt($1,$3);
+    $$->SetLineNumber(line_number);
+}
+|RelExp GEQ  AddExp{
+    $$=new RelExp_geq($1,$3);
+    $$->SetLineNumber(line_number);
+}
+|RelExp '>' AddExp{
+    $$=new RelExp_gt($1,$3);
+    $$->SetLineNumber(line_number);
+}
+//TODO{}
 ;
 
 EqExp
-:TODO{}
+:RelExp{$$ = $1;$$->SetLineNumber(line_number);}
+|EqExp EQ RelExp{
+    $$=new EqExp_eq($1,$3);
+    $$->SetLineNumber(line_number);
+}
+|EqExp NE RelExp{
+    $$=new EqExp_neq($1,$3);
+    $$->SetLineNumber(line_number);
+}
+//TODO{}
 ;
 
-LAndExp
-:TODO{}
+LAndExp //LAndExp && EqExp、LOrExp || LAndExp、
+:EqExp{$$ = $1;$$->SetLineNumber(line_number);}
+|LAndExp AND EqExp{
+    $$=new LAndExp_and($1,$3);
+    $$->SetLineNumber(line_number);
+}
+//TODO{}
 ;
 
 LOrExp
-:TODO{}
+:LAndExp{$$ = $1;$$->SetLineNumber(line_number);}
+|LOrExp OR LAndExp{$$ = new LOrExp_or($1,$3); $$->SetLineNumber(line_number);}
+
+//TODO{}
 ;
 
 ConstExp
-:TODO{}
+:AddExp{$$ = $1;$$->SetLineNumber(line_number);}
+//TODO{}
+;
+
+
+Array
+:'[' Exp ']'{$$ = $2;$$->SetLineNumber(line_number);}
+;
+
+Array_list
+:Array
+{
+    $$ = new std::vector<Expression>;
+    ($$)->push_back($1);
+}
+|Array_list Array
+{
+    ($1)->push_back($2);
+    $$ = $1;
+}
+;
+
+ConstArray
+:'[' ConstExp ']'{$$ = $2;$$->SetLineNumber(line_number);}
+;
+
+ConstArray_list
+:ConstArray
+{
+    $$ = new std::vector<Expression>;
+    ($$)->push_back($1);
+}
+|ConstArray_list ConstArray
+{
+    ($1)->push_back($2);
+    $$ = $1;
+}
 ;
 
 // TODO: 也许你需要添加更多的非终结符

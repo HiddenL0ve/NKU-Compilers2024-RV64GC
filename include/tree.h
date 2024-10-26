@@ -15,7 +15,7 @@ public:
     void SetLineNumber(int t) { line_number = t; }
 
     virtual void codeIR() = 0;                              // 中间代码生成
-    virtual void printAST(std::ostream &s, int pad) = 0;    // 打印语法树
+    virtual void printAST(std::ostream &s, long long int pad) = 0;    // 打印语法树
     virtual void TypeCheck() = 0;                           // 类型检查
 };
 

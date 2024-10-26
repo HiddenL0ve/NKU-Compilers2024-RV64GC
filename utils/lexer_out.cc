@@ -33,6 +33,8 @@ void PrintLexerResult(std::ostream &s, char *yytext, YYSTYPE yylval, int token) 
     case INT_CONST:
         ALIGNED_FORMAT_OUTPUT("INT_CONST", yytext, yylval.int_token);
         break;
+
+       
     case FLOAT:
         ALIGNED_FORMAT_OUTPUT("FLOAT", yytext, "");
         break;

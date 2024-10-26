@@ -1,0 +1,77 @@
+Token           Lexeme               Property                        Line           Column         
+ADD             +                                                     1              0              
+INT_CONST       015                  13                               1              1              
+INT_CONST       000000               0                                2              0              
+SUB             -                                                     3              0              
+FLOAT_CONST     11e27                10999999999999999321529384960.000000000000 3              1              
+SUB             -                                                     4              0              
+FLOAT_CONST     11e-2                0.110000000000                   4              1              
+SUB             -                                                     5              0              
+FLOAT_CONST     11.e-2               0.110000000000                   5              1              
+FLOAT_CONST     .4e-2                0.004000000000                   6              0              
+SUB             -                                                     7              0              
+INT_CONST       1111                 1111                             7              1              
+FLOAT_CONST     11.2                 11.200000000000                  8              0              
+INT_CONST       11                   11                               9              0              
+SUB             -                                                     10             0              
+INT_CONST       2147483649           -2147483647                      10             1              
+SUB             -                                                     11             0              
+FLOAT_CONST     0xap1                20.000000000000                  11             1              
+SUB             -                                                     12             0              
+FLOAT_CONST     0x1.ap1              3.250000000000                   12             1              
+SUB             -                                                     13             0              
+FLOAT_CONST     0x1.p1               2.000000000000                   13             1              
+SUB             -                                                     14             0              
+FLOAT_CONST     0x.ap1               1.250000000000                   14             1              
+ADD             +                                                     15             0              
+INT_CONST       0xaaaaaaaaa          -1431655766                      15             1              
+ADD             +                                                     16             0              
+INT_CONST       077777777777         -1                               16             1              
+SUB             -                                                     17             0              
+INT_CONST       0xaaaaaaaaaaaaaa     -1431655766                      17             1              
+SUB             -                                                     18             0              
+INT_CONST       0xaa                 170                              18             1              
+SUB             -                                                     19             0              
+INT_CONST       0555                 365                              19             1              
+IDENT           a                    a                                20             0              
+ADD             +                                                     20             1              
+IDENT           b                    b                                20             2              
+IDENT           a                    a                                21             0              
+ASSIGN          =                                                     21             2              
+INT_CONST       1                    1                                21             6              
+ADD             +                                                     21             8              
+INT_CONST       2                    2                                21             10             
+SEMICOLON       ;                                                     21             11             
+IDENT           a                    a                                22             13             
+ASSIGN          =                                                     22             15             
+IDENT           b                    b                                22             17             
+ADD             +                                                     22             19             
+IDENT           c                    c                                22             21             
+MUL             *                                                     22             23             
+IDENT           d                    d                                22             25             
+DIV             /                                                     22             27             
+IDENT           e                    e                                22             29             
+IF              if                                                    23             1              
+LPAREN          (                                                     23             3              
+IDENT           a                    a                                23             4              
+LESS            <                                                     23             6              
+INT_CONST       5                    5                                23             8              
+RPAREN          )                                                     23             9              
+RETURN          return                                                24             4              
+INT_CONST       1                    1                                24             11             
+SEMICOLON       ;                                                     24             12             
+IDENT           f                    f                                26             1              
+ASSIGN          =                                                     26             3              
+IDENT           g                    g                                26             5              
+DIV             /                                                     26             8              
+IDENT           h                    h                                26             9              
+SEMICOLON       ;                                                     26             10             
+IDENT           l                    l                                27             6              
+LPAREN          (                                                     27             7              
+RPAREN          )                                                     27             8              
+SEMICOLON       ;                                                     27             9              
+IDENT           m                    m                                28             0              
+ASSIGN          =                                                     28             2              
+IDENT           n                    n                                28             4              
+ADD             +                                                     29             0              
+IDENT           p                    p                                29             1              

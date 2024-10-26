@@ -91,12 +91,16 @@ union YYSTYPE
     char* error_msg;
     Symbol symbol_token;
     double float_token; // 对于SysY的浮点常量，我们需要先以double类型计算，再在语法树节点创建的时候转为float
-    int int_token;
+    long long int int_token;
+    
     Program program;  
     CompUnit comp_unit;  std::vector<CompUnit>* comps; 
-    Decl decl;
+    Decl decl;//声明 
     Def def;  std::vector<Def>* defs;
     FuncDef func_def;
+
+
+
     Expression expression;  std::vector<Expression>* expressions;
     Stmt stmt;
     Block block;
@@ -104,7 +108,7 @@ union YYSTYPE
     FuncFParam formal;   std::vector<FuncFParam>* formals;
     BlockItem block_item;   std::vector<BlockItem>* block_items;
 
-#line 108 "SysY_parser.tab.h"
+#line 112 "SysY_parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

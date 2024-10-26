@@ -137,29 +137,64 @@ enum yysymbol_kind_t
   YYSYMBOL_TODO = 25,                      /* TODO  */
   YYSYMBOL_THEN = 26,                      /* THEN  */
   YYSYMBOL_27_ = 27,                       /* ';'  */
-  YYSYMBOL_28_ = 28,                       /* '('  */
-  YYSYMBOL_29_ = 29,                       /* ')'  */
-  YYSYMBOL_30_ = 30,                       /* '='  */
-  YYSYMBOL_31_ = 31,                       /* ','  */
+  YYSYMBOL_28_ = 28,                       /* ','  */
+  YYSYMBOL_29_ = 29,                       /* '('  */
+  YYSYMBOL_30_ = 30,                       /* ')'  */
+  YYSYMBOL_31_ = 31,                       /* '='  */
   YYSYMBOL_32_ = 32,                       /* '{'  */
   YYSYMBOL_33_ = 33,                       /* '}'  */
-  YYSYMBOL_34_ = 34,                       /* '+'  */
-  YYSYMBOL_35_ = 35,                       /* '-'  */
-  YYSYMBOL_36_ = 36,                       /* '!'  */
-  YYSYMBOL_YYACCEPT = 37,                  /* $accept  */
-  YYSYMBOL_Program = 38,                   /* Program  */
-  YYSYMBOL_Comp_list = 39,                 /* Comp_list  */
-  YYSYMBOL_CompUnit = 40,                  /* CompUnit  */
-  YYSYMBOL_Decl = 41,                      /* Decl  */
-  YYSYMBOL_VarDecl = 42,                   /* VarDecl  */
-  YYSYMBOL_ConstDecl = 43,                 /* ConstDecl  */
-  YYSYMBOL_VarDef_list = 44,               /* VarDef_list  */
-  YYSYMBOL_ConstDef_list = 45,             /* ConstDef_list  */
-  YYSYMBOL_FuncDef = 46,                   /* FuncDef  */
-  YYSYMBOL_FuncFParams = 47,               /* FuncFParams  */
-  YYSYMBOL_FuncFParam = 48,                /* FuncFParam  */
-  YYSYMBOL_Block = 49,                     /* Block  */
-  YYSYMBOL_BlockItem_list = 50             /* BlockItem_list  */
+  YYSYMBOL_34_ = 34,                       /* '['  */
+  YYSYMBOL_35_ = 35,                       /* ']'  */
+  YYSYMBOL_36_ = 36,                       /* '+'  */
+  YYSYMBOL_37_ = 37,                       /* '-'  */
+  YYSYMBOL_38_ = 38,                       /* '!'  */
+  YYSYMBOL_39_ = 39,                       /* '*'  */
+  YYSYMBOL_40_ = 40,                       /* '/'  */
+  YYSYMBOL_41_ = 41,                       /* '%'  */
+  YYSYMBOL_42_ = 42,                       /* '<'  */
+  YYSYMBOL_43_ = 43,                       /* '>'  */
+  YYSYMBOL_YYACCEPT = 44,                  /* $accept  */
+  YYSYMBOL_Program = 45,                   /* Program  */
+  YYSYMBOL_Comp_list = 46,                 /* Comp_list  */
+  YYSYMBOL_CompUnit = 47,                  /* CompUnit  */
+  YYSYMBOL_Decl = 48,                      /* Decl  */
+  YYSYMBOL_VarDecl = 49,                   /* VarDecl  */
+  YYSYMBOL_ConstDecl = 50,                 /* ConstDecl  */
+  YYSYMBOL_VarDef_list = 51,               /* VarDef_list  */
+  YYSYMBOL_ConstDef_list = 52,             /* ConstDef_list  */
+  YYSYMBOL_FuncDef = 53,                   /* FuncDef  */
+  YYSYMBOL_VarDef = 54,                    /* VarDef  */
+  YYSYMBOL_ConstDef = 55,                  /* ConstDef  */
+  YYSYMBOL_ConstInitVal = 56,              /* ConstInitVal  */
+  YYSYMBOL_VarInitVal = 57,                /* VarInitVal  */
+  YYSYMBOL_ConstInitVal_list = 58,         /* ConstInitVal_list  */
+  YYSYMBOL_VarInitVal_list = 59,           /* VarInitVal_list  */
+  YYSYMBOL_FuncFParams = 60,               /* FuncFParams  */
+  YYSYMBOL_FuncFParam = 61,                /* FuncFParam  */
+  YYSYMBOL_Block = 62,                     /* Block  */
+  YYSYMBOL_BlockItem_list = 63,            /* BlockItem_list  */
+  YYSYMBOL_BlockItem = 64,                 /* BlockItem  */
+  YYSYMBOL_Stmt = 65,                      /* Stmt  */
+  YYSYMBOL_Exp = 66,                       /* Exp  */
+  YYSYMBOL_Cond = 67,                      /* Cond  */
+  YYSYMBOL_Lval = 68,                      /* Lval  */
+  YYSYMBOL_PrimaryExp = 69,                /* PrimaryExp  */
+  YYSYMBOL_IntConst = 70,                  /* IntConst  */
+  YYSYMBOL_FloatConst = 71,                /* FloatConst  */
+  YYSYMBOL_UnaryExp = 72,                  /* UnaryExp  */
+  YYSYMBOL_FuncRParams = 73,               /* FuncRParams  */
+  YYSYMBOL_Exp_list = 74,                  /* Exp_list  */
+  YYSYMBOL_MulExp = 75,                    /* MulExp  */
+  YYSYMBOL_AddExp = 76,                    /* AddExp  */
+  YYSYMBOL_RelExp = 77,                    /* RelExp  */
+  YYSYMBOL_EqExp = 78,                     /* EqExp  */
+  YYSYMBOL_LAndExp = 79,                   /* LAndExp  */
+  YYSYMBOL_LOrExp = 80,                    /* LOrExp  */
+  YYSYMBOL_ConstExp = 81,                  /* ConstExp  */
+  YYSYMBOL_Array = 82,                     /* Array  */
+  YYSYMBOL_Array_list = 83,                /* Array_list  */
+  YYSYMBOL_ConstArray = 84,                /* ConstArray  */
+  YYSYMBOL_ConstArray_list = 85            /* ConstArray_list  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -276,7 +311,7 @@ typedef int yytype_uint16;
 
 
 /* Stored state numbers (used for stacks). */
-typedef yytype_int8 yy_state_t;
+typedef yytype_uint8 yy_state_t;
 
 /* State numbers in computations.  */
 typedef int yy_state_fast_t;
@@ -488,18 +523,18 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  14
+#define YYFINAL  20
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   22
+#define YYLAST   302
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  37
+#define YYNTOKENS  44
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  14
+#define YYNNTS  42
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  20
+#define YYNRULES  108
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  36
+#define YYNSTATES  200
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   281
@@ -519,13 +554,13 @@ static const yytype_int8 yytranslate[] =
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    36,     2,     2,     2,     2,     2,     2,
-      28,    29,     2,    34,    31,    35,     2,     2,     2,     2,
+       2,     2,     2,    38,     2,     2,     2,    41,     2,     2,
+      29,    30,    39,    36,    28,    37,     2,    40,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,    27,
-       2,    30,     2,     2,     2,     2,     2,     2,     2,     2,
+      42,    31,    43,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,    34,     2,    35,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,    32,     2,    33,     2,     2,     2,     2,
@@ -549,11 +584,19 @@ static const yytype_int8 yytranslate[] =
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    66,    66,    74,    79,    86,    90,    97,   101,   108,
-     117,   126,   130,   134,   139,   178,   182,   189,   197,   201,
-     208
+       0,    76,    76,    84,    89,    96,   100,   107,   111,   118,
+     122,   131,   135,   144,   148,   157,   161,   169,   174,   179,
+     183,   188,   192,   201,   203,   205,   207,   215,   217,   224,
+     226,   230,   239,   243,   247,   254,   258,   268,   272,   280,
+     284,   294,   298,   302,   308,   314,   319,   328,   332,   339,
+     343,   351,   355,   363,   367,   371,   375,   379,   383,   387,
+     391,   395,   399,   403,   411,   415,   420,   424,   432,   436,
+     440,   444,   453,   460,   468,   469,   473,   497,   501,   505,
+     512,   520,   524,   532,   533,   537,   541,   551,   555,   559,
+     566,   570,   574,   578,   582,   590,   591,   595,   603,   604,
+     612,   613,   619,   625,   629,   634,   642,   646,   651
 };
 #endif
 
@@ -572,11 +615,17 @@ static const char *const yytname[] =
   "\"end of file\"", "error", "\"invalid token\"", "STR_CONST", "IDENT",
   "FLOAT_CONST", "INT_CONST", "LEQ", "GEQ", "EQ", "NE", "AND", "OR",
   "CONST", "IF", "ELSE", "WHILE", "NONE_TYPE", "INT", "FLOAT", "FOR",
-  "RETURN", "BREAK", "CONTINUE", "ERROR", "TODO", "THEN", "';'", "'('",
-  "')'", "'='", "','", "'{'", "'}'", "'+'", "'-'", "'!'", "$accept",
-  "Program", "Comp_list", "CompUnit", "Decl", "VarDecl", "ConstDecl",
-  "VarDef_list", "ConstDef_list", "FuncDef", "FuncFParams", "FuncFParam",
-  "Block", "BlockItem_list", YY_NULLPTR
+  "RETURN", "BREAK", "CONTINUE", "ERROR", "TODO", "THEN", "';'", "','",
+  "'('", "')'", "'='", "'{'", "'}'", "'['", "']'", "'+'", "'-'", "'!'",
+  "'*'", "'/'", "'%'", "'<'", "'>'", "$accept", "Program", "Comp_list",
+  "CompUnit", "Decl", "VarDecl", "ConstDecl", "VarDef_list",
+  "ConstDef_list", "FuncDef", "VarDef", "ConstDef", "ConstInitVal",
+  "VarInitVal", "ConstInitVal_list", "VarInitVal_list", "FuncFParams",
+  "FuncFParam", "Block", "BlockItem_list", "BlockItem", "Stmt", "Exp",
+  "Cond", "Lval", "PrimaryExp", "IntConst", "FloatConst", "UnaryExp",
+  "FuncRParams", "Exp_list", "MulExp", "AddExp", "RelExp", "EqExp",
+  "LAndExp", "LOrExp", "ConstExp", "Array", "Array_list", "ConstArray",
+  "ConstArray_list", YY_NULLPTR
 };
 
 static const char *
@@ -586,7 +635,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-26)
+#define YYPACT_NINF (-160)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -598,12 +647,28 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-static const yytype_int8 yypact[] =
+static const yytype_int16 yypact[] =
 {
-     -10,   -13,    -4,     7,   -10,   -26,   -26,   -26,   -26,   -26,
-     -16,   -15,   -26,   -12,   -26,   -26,   -26,   -11,   -17,   -26,
-     -26,    10,   -21,   -25,   -26,   -26,   -23,   -26,   -21,    -1,
-     -26,   -26,   -14,   -26,   -26,   -26
+      31,    76,    26,    37,    47,    57,    31,  -160,  -160,  -160,
+    -160,  -160,    79,    79,    71,    40,   107,  -160,    50,   126,
+    -160,  -160,    -8,   128,  -160,   130,     6,    10,   245,    29,
+    -160,    11,  -160,   102,    45,  -160,   264,    29,  -160,    39,
+    -160,    79,  -160,   108,   119,   109,    99,  -160,   109,   100,
+      51,  -160,  -160,    29,    72,    29,    29,    29,  -160,  -160,
+    -160,  -160,  -160,  -160,  -160,    85,   134,    97,   245,  -160,
+      65,  -160,   109,   103,   229,  -160,   134,  -160,   104,   264,
+    -160,  -160,   127,   129,   146,  -160,   158,   109,  -160,   109,
+      84,   132,   142,  -160,  -160,    58,  -160,  -160,  -160,    29,
+      29,    29,    29,    29,  -160,  -160,  -160,   109,  -160,  -160,
+      59,  -160,  -160,   139,   157,   164,   167,   102,   102,   251,
+     174,   178,  -160,  -160,  -160,  -160,   181,  -160,  -160,   179,
+     176,  -160,  -160,  -160,  -160,  -160,   168,   183,  -160,   245,
+    -160,  -160,  -160,  -160,    85,    85,  -160,   264,  -160,   132,
+     132,    29,    29,  -160,   182,  -160,  -160,  -160,  -160,  -160,
+      29,  -160,    29,  -160,  -160,   132,   132,   185,   134,    13,
+     171,   201,   204,   193,  -160,   197,  -160,   216,    29,    29,
+      29,    29,    29,    29,    29,    29,   216,  -160,   210,   134,
+     134,   134,   134,    13,    13,   171,   201,  -160,   216,  -160
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -611,67 +676,177 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,     2,     3,     5,     7,     8,     6,
-       0,     0,    11,     0,     1,     4,    12,     0,     0,     9,
-      10,     0,     0,     0,    15,    17,     0,    14,     0,     0,
-      20,    19,     0,    13,    16,    18
+       0,     0,     0,     0,     0,     0,     2,     3,     5,     7,
+       8,     6,     0,     0,     0,    24,     0,    13,    24,     0,
+       1,     4,     0,     0,    15,     0,     0,     0,     0,     0,
+     104,    26,     9,     0,     0,    10,     0,     0,   107,     0,
+      11,     0,    12,     0,     0,     0,     0,    39,     0,     0,
+      66,    73,    72,     0,     0,     0,     0,     0,    23,    34,
+      69,    74,    71,    70,    83,    87,    64,     0,     0,   105,
+      24,    14,     0,     0,     0,    27,   102,    31,     0,     0,
+     108,    16,    41,    42,     0,    22,     0,     0,    18,     0,
+       0,    67,     0,    32,    37,     0,    77,    78,    79,     0,
+       0,     0,     0,     0,   103,    25,    20,     0,    29,    35,
+       0,   106,    28,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    54,    48,    52,    55,     0,    49,    51,     0,
+      69,    40,    21,    17,    76,    81,     0,    80,    68,     0,
+      33,    84,    85,    86,    88,    89,    19,     0,    30,    43,
+      44,     0,     0,    63,     0,    60,    61,    47,    50,    56,
+       0,    75,     0,    38,    36,    45,    46,     0,    90,    95,
+      98,   100,    65,     0,    62,     0,    82,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    53,    58,    91,
+      93,    92,    94,    96,    97,    99,   101,    57,     0,    59
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const yytype_int8 yypgoto[] =
+static const yytype_int16 yypgoto[] =
 {
-     -26,   -26,   -26,    14,   -26,   -26,   -26,   -26,   -26,   -26,
-     -26,    -9,    -6,   -26
+    -160,  -160,  -160,   220,   -73,  -160,  -160,     0,   214,  -160,
+     195,   188,   -65,   -46,  -160,  -160,   -15,   145,   -35,  -160,
+     110,  -159,   -22,    88,   -79,  -160,  -160,  -160,   -40,  -160,
+    -160,    86,   -36,     8,    60,    56,  -160,   205,   -29,   -47,
+     207,  -160
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_int8 yydefgoto[] =
+static const yytype_uint8 yydefgoto[] =
 {
-       0,     3,     4,     5,     6,     7,     8,    13,    17,     9,
-      23,    24,    27,    32
+       0,     5,     6,     7,     8,     9,    10,    16,    23,    11,
+      17,    24,    75,    58,   110,    95,    46,    47,   125,   126,
+     127,   128,   129,   167,    60,    61,    62,    63,    64,   136,
+     137,    65,    66,   169,   170,   171,   172,    77,    30,    31,
+      38,    39
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule whose
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int8 yytable[] =
+static const yytype_uint8 yytable[] =
 {
-      11,    21,    30,     1,    28,    10,    29,    14,     2,    16,
-      31,    26,    22,    18,    25,    19,    20,    21,    15,    35,
-      34,    12,    33
+      76,    76,    69,    91,    19,   130,    59,    67,    94,   109,
+      85,   124,    49,    88,   112,    96,    97,    98,   188,    73,
+     178,   179,   105,    36,    43,    44,    37,   197,    43,    44,
+      14,    92,    59,    50,    51,    52,    45,   106,    76,   199,
+      48,    15,    68,    76,     1,    29,    59,   130,     2,     3,
+       4,    18,   132,   124,   133,   180,   181,    20,    53,   141,
+     142,   143,    69,    43,    44,    55,    56,    57,   135,    27,
+      79,    28,   146,    37,    29,    72,    50,    51,    52,    34,
+      90,    28,   164,    22,    29,    29,   139,   147,    50,    51,
+      52,   140,   148,   163,    12,    13,    28,   154,   130,    29,
+      26,    53,   165,   166,    54,    93,    70,   130,    55,    56,
+      57,    76,    82,    53,   134,   168,   168,    59,    19,   130,
+      55,    56,    57,    83,    99,   100,   101,    86,    86,    87,
+      89,    86,   104,   107,    32,    33,    69,    69,   175,   111,
+     176,    84,   189,   190,   191,   192,   168,   168,   168,   168,
+      50,    51,    52,    35,    33,    40,    41,    42,    41,     1,
+     115,   113,   116,   114,   117,   118,    29,   119,   120,   121,
+     102,   103,   138,   122,   149,    53,    43,    44,    84,   123,
+     182,   183,    55,    56,    57,    50,    51,    52,   144,   145,
+     193,   194,   150,   151,     1,   115,   152,   116,   161,   117,
+     118,   155,   119,   120,   121,   156,   159,   160,   122,   174,
+      53,   162,   184,    84,   157,   177,   185,    55,    56,    57,
+      50,    51,    52,   186,   187,   198,    21,    25,    71,    81,
+     115,   131,   116,    50,    51,    52,   158,   119,   120,   121,
+     173,   196,    78,   122,   195,    53,    80,     0,    84,    50,
+      51,    52,    55,    56,    57,    50,    51,    52,    53,     0,
+       0,    74,   108,     0,     0,    55,    56,    57,    50,    51,
+      52,     0,     0,     0,    53,     0,     0,    54,   153,     0,
+      53,    55,    56,    57,     0,     0,     0,    55,    56,    57,
+       0,     0,     0,    53,     0,     0,    74,     0,     0,     0,
+      55,    56,    57
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_int16 yycheck[] =
 {
-       4,    18,    25,    13,    29,    18,    31,     0,    18,    25,
-      33,    32,    29,    28,     4,    27,    27,    18,     4,    33,
-      29,    25,    28
+      36,    37,    31,    50,     4,    84,    28,    29,    54,    74,
+      45,    84,    27,    48,    79,    55,    56,    57,   177,    34,
+       7,     8,    68,    31,    18,    19,    34,   186,    18,    19,
+       4,    53,    54,     4,     5,     6,    30,    72,    74,   198,
+      30,     4,    31,    79,    13,    34,    68,   126,    17,    18,
+      19,     4,    87,   126,    89,    42,    43,     0,    29,    99,
+     100,   101,    91,    18,    19,    36,    37,    38,    90,    29,
+      31,    31,   107,    34,    34,    30,     4,     5,     6,    29,
+      29,    31,   147,     4,    34,    34,    28,    28,     4,     5,
+       6,    33,    33,   139,    18,    19,    31,   119,   177,    34,
+      29,    29,   149,   150,    32,    33,     4,   186,    36,    37,
+      38,   147,     4,    29,    30,   151,   152,   139,   118,   198,
+      36,    37,    38,     4,    39,    40,    41,    28,    28,    30,
+      30,    28,    35,    30,    27,    28,   165,   166,   160,    35,
+     162,    32,   178,   179,   180,   181,   182,   183,   184,   185,
+       4,     5,     6,    27,    28,    27,    28,    27,    28,    13,
+      14,    34,    16,    34,    18,    19,    34,    21,    22,    23,
+      36,    37,    30,    27,    35,    29,    18,    19,    32,    33,
+       9,    10,    36,    37,    38,     4,     5,     6,   102,   103,
+     182,   183,    35,    29,    13,    14,    29,    16,    30,    18,
+      19,    27,    21,    22,    23,    27,    27,    31,    27,    27,
+      29,    28,    11,    32,    33,    30,    12,    36,    37,    38,
+       4,     5,     6,    30,    27,    15,     6,    13,    33,    41,
+      14,    86,    16,     4,     5,     6,   126,    21,    22,    23,
+     152,   185,    37,    27,   184,    29,    39,    -1,    32,     4,
+       5,     6,    36,    37,    38,     4,     5,     6,    29,    -1,
+      -1,    32,    33,    -1,    -1,    36,    37,    38,     4,     5,
+       6,    -1,    -1,    -1,    29,    -1,    -1,    32,    27,    -1,
+      29,    36,    37,    38,    -1,    -1,    -1,    36,    37,    38,
+      -1,    -1,    -1,    29,    -1,    -1,    32,    -1,    -1,    -1,
+      36,    37,    38
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    13,    18,    38,    39,    40,    41,    42,    43,    46,
-      18,     4,    25,    44,     0,    40,    25,    45,    28,    27,
-      27,    18,    29,    47,    48,     4,    32,    49,    29,    31,
-      25,    33,    50,    49,    48,    33
+       0,    13,    17,    18,    19,    45,    46,    47,    48,    49,
+      50,    53,    18,    19,     4,     4,    51,    54,     4,    51,
+       0,    47,     4,    52,    55,    52,    29,    29,    31,    34,
+      82,    83,    27,    28,    29,    27,    31,    34,    84,    85,
+      27,    28,    27,    18,    19,    30,    60,    61,    30,    60,
+       4,     5,     6,    29,    32,    36,    37,    38,    57,    66,
+      68,    69,    70,    71,    72,    75,    76,    66,    31,    82,
+       4,    54,    30,    60,    32,    56,    76,    81,    81,    31,
+      84,    55,     4,     4,    32,    62,    28,    30,    62,    30,
+      29,    83,    66,    33,    57,    59,    72,    72,    72,    39,
+      40,    41,    36,    37,    35,    57,    62,    30,    33,    56,
+      58,    35,    56,    34,    34,    14,    16,    18,    19,    21,
+      22,    23,    27,    33,    48,    62,    63,    64,    65,    66,
+      68,    61,    62,    62,    30,    66,    73,    74,    30,    28,
+      33,    72,    72,    72,    75,    75,    62,    28,    33,    35,
+      35,    29,    29,    27,    66,    27,    27,    33,    64,    27,
+      31,    30,    28,    57,    56,    83,    83,    67,    76,    77,
+      78,    79,    80,    67,    27,    66,    66,    30,     7,     8,
+      42,    43,     9,    10,    11,    12,    30,    27,    65,    76,
+      76,    76,    76,    77,    77,    78,    79,    65,    15,    65
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    37,    38,    39,    39,    40,    40,    41,    41,    42,
-      43,    44,    45,    46,    46,    47,    47,    48,    49,    49,
-      50
+       0,    44,    45,    46,    46,    47,    47,    48,    48,    49,
+      49,    50,    50,    51,    51,    52,    52,    53,    53,    53,
+      53,    53,    53,    54,    54,    54,    54,    55,    55,    56,
+      56,    56,    57,    57,    57,    58,    58,    59,    59,    60,
+      60,    61,    61,    61,    61,    61,    61,    62,    62,    63,
+      63,    64,    64,    65,    65,    65,    65,    65,    65,    65,
+      65,    65,    65,    65,    66,    67,    68,    68,    69,    69,
+      69,    69,    70,    71,    72,    72,    72,    72,    72,    72,
+      73,    74,    74,    75,    75,    75,    75,    76,    76,    76,
+      77,    77,    77,    77,    77,    78,    78,    78,    79,    79,
+      80,    80,    81,    82,    83,    83,    84,    85,    85
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     1,     2,     1,     1,     1,     1,     3,
-       4,     1,     1,     6,     5,     1,     3,     2,     3,     2,
-       1
+       3,     4,     4,     1,     3,     1,     3,     6,     5,     6,
+       5,     6,     5,     3,     1,     4,     2,     3,     4,     2,
+       3,     1,     2,     3,     1,     1,     3,     1,     3,     1,
+       3,     2,     2,     4,     4,     5,     5,     3,     2,     1,
+       2,     1,     1,     4,     1,     1,     2,     5,     5,     7,
+       2,     2,     3,     2,     1,     1,     1,     2,     3,     1,
+       1,     1,     1,     1,     1,     4,     3,     2,     2,     2,
+       1,     1,     3,     1,     3,     3,     3,     1,     3,     3,
+       1,     3,     3,     3,     3,     1,     3,     3,     1,     3,
+       1,     3,     1,     3,     1,     2,     3,     1,     2
 };
 
 
@@ -1248,170 +1423,944 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* Program: Comp_list  */
-#line 67 "parser/SysY_parser.y"
+#line 77 "parser/SysY_parser.y"
 {
     (yyloc) = (yylsp[0]);
     ast_root = new __Program((yyvsp[0].comps));
     ast_root->SetLineNumber(line_number);
 }
-#line 1258 "SysY_parser.tab.c"
+#line 1433 "SysY_parser.tab.c"
     break;
 
   case 3: /* Comp_list: CompUnit  */
-#line 75 "parser/SysY_parser.y"
+#line 85 "parser/SysY_parser.y"
 {
     (yyval.comps) = new std::vector<CompUnit>;
     ((yyval.comps))->push_back((yyvsp[0].comp_unit));
 }
-#line 1267 "SysY_parser.tab.c"
+#line 1442 "SysY_parser.tab.c"
     break;
 
   case 4: /* Comp_list: Comp_list CompUnit  */
-#line 80 "parser/SysY_parser.y"
+#line 90 "parser/SysY_parser.y"
 {
     ((yyvsp[-1].comps))->push_back((yyvsp[0].comp_unit));
     (yyval.comps) = (yyvsp[-1].comps);
 }
-#line 1276 "SysY_parser.tab.c"
+#line 1451 "SysY_parser.tab.c"
     break;
 
   case 5: /* CompUnit: Decl  */
-#line 86 "parser/SysY_parser.y"
+#line 96 "parser/SysY_parser.y"
      {
     (yyval.comp_unit) = new CompUnit_Decl((yyvsp[0].decl)); 
     (yyval.comp_unit)->SetLineNumber(line_number);
 }
-#line 1285 "SysY_parser.tab.c"
+#line 1460 "SysY_parser.tab.c"
     break;
 
   case 6: /* CompUnit: FuncDef  */
-#line 90 "parser/SysY_parser.y"
+#line 100 "parser/SysY_parser.y"
         {
     (yyval.comp_unit) = new CompUnit_FuncDef((yyvsp[0].func_def)); 
     (yyval.comp_unit)->SetLineNumber(line_number);
 }
-#line 1294 "SysY_parser.tab.c"
+#line 1469 "SysY_parser.tab.c"
     break;
 
   case 7: /* Decl: VarDecl  */
-#line 97 "parser/SysY_parser.y"
+#line 107 "parser/SysY_parser.y"
         {
     (yyval.decl) = (yyvsp[0].decl); 
     (yyval.decl)->SetLineNumber(line_number);
 }
-#line 1303 "SysY_parser.tab.c"
+#line 1478 "SysY_parser.tab.c"
     break;
 
   case 8: /* Decl: ConstDecl  */
-#line 101 "parser/SysY_parser.y"
+#line 111 "parser/SysY_parser.y"
           {
     (yyval.decl) = (yyvsp[0].decl); 
     (yyval.decl)->SetLineNumber(line_number);
 }
-#line 1312 "SysY_parser.tab.c"
+#line 1487 "SysY_parser.tab.c"
     break;
 
   case 9: /* VarDecl: INT VarDef_list ';'  */
-#line 108 "parser/SysY_parser.y"
+#line 118 "parser/SysY_parser.y"
                     {
     (yyval.decl) = new VarDecl(Type::INT,(yyvsp[-1].defs)); 
     (yyval.decl)->SetLineNumber(line_number);
 }
-#line 1321 "SysY_parser.tab.c"
+#line 1496 "SysY_parser.tab.c"
     break;
 
-  case 10: /* ConstDecl: CONST INT ConstDef_list ';'  */
-#line 117 "parser/SysY_parser.y"
+  case 10: /* VarDecl: FLOAT VarDef_list ';'  */
+#line 122 "parser/SysY_parser.y"
+                      {
+    (yyval.decl)= new VarDecl(Type::FLOAT,(yyvsp[-1].defs));
+    (yyval.decl)->SetLineNumber(line_number);
+}
+#line 1505 "SysY_parser.tab.c"
+    break;
+
+  case 11: /* ConstDecl: CONST INT ConstDef_list ';'  */
+#line 131 "parser/SysY_parser.y"
                             {
     (yyval.decl) = new ConstDecl(Type::INT,(yyvsp[-1].defs)); 
     (yyval.decl)->SetLineNumber(line_number);
 }
-#line 1330 "SysY_parser.tab.c"
+#line 1514 "SysY_parser.tab.c"
     break;
 
-  case 11: /* VarDef_list: TODO  */
-#line 126 "parser/SysY_parser.y"
-     {}
-#line 1336 "SysY_parser.tab.c"
-    break;
-
-  case 12: /* ConstDef_list: TODO  */
-#line 130 "parser/SysY_parser.y"
-     {}
-#line 1342 "SysY_parser.tab.c"
-    break;
-
-  case 13: /* FuncDef: INT IDENT '(' FuncFParams ')' Block  */
+  case 12: /* ConstDecl: CONST FLOAT ConstDef_list ';'  */
 #line 135 "parser/SysY_parser.y"
+                              {
+    (yyval.decl) = new ConstDecl(Type::FLOAT,(yyvsp[-1].defs)); 
+    (yyval.decl)->SetLineNumber(line_number);
+}
+#line 1523 "SysY_parser.tab.c"
+    break;
+
+  case 13: /* VarDef_list: VarDef  */
+#line 144 "parser/SysY_parser.y"
+       {
+    (yyval.defs)=new std::vector<Def>;
+    ((yyval.defs))->push_back((yyvsp[0].def));
+}
+#line 1532 "SysY_parser.tab.c"
+    break;
+
+  case 14: /* VarDef_list: VarDef_list ',' VarDef  */
+#line 148 "parser/SysY_parser.y"
+                       {
+   // $1=new std::vector<Def>;
+    ((yyvsp[-2].defs))->push_back((yyvsp[0].def));
+    (yyval.defs)=(yyvsp[-2].defs);
+}
+#line 1542 "SysY_parser.tab.c"
+    break;
+
+  case 15: /* ConstDef_list: ConstDef  */
+#line 157 "parser/SysY_parser.y"
+         {
+    (yyval.defs)=new std::vector<Def>;
+    ((yyval.defs))->push_back((yyvsp[0].def));
+}
+#line 1551 "SysY_parser.tab.c"
+    break;
+
+  case 16: /* ConstDef_list: ConstDef_list ',' ConstDef  */
+#line 161 "parser/SysY_parser.y"
+                           {
+    ((yyvsp[-2].defs))->push_back((yyvsp[0].def));
+    (yyval.defs)=(yyvsp[-2].defs);
+}
+#line 1560 "SysY_parser.tab.c"
+    break;
+
+  case 17: /* FuncDef: INT IDENT '(' FuncFParams ')' Block  */
+#line 170 "parser/SysY_parser.y"
 {
     (yyval.func_def) = new __FuncDef(Type::INT,(yyvsp[-4].symbol_token),(yyvsp[-2].formals),(yyvsp[0].block));
     (yyval.func_def)->SetLineNumber(line_number);
 }
-#line 1351 "SysY_parser.tab.c"
+#line 1569 "SysY_parser.tab.c"
     break;
 
-  case 14: /* FuncDef: INT IDENT '(' ')' Block  */
-#line 140 "parser/SysY_parser.y"
+  case 18: /* FuncDef: INT IDENT '(' ')' Block  */
+#line 175 "parser/SysY_parser.y"
 {
     (yyval.func_def) = new __FuncDef(Type::INT,(yyvsp[-3].symbol_token),new std::vector<FuncFParam>(),(yyvsp[0].block)); 
     (yyval.func_def)->SetLineNumber(line_number);
 }
-#line 1360 "SysY_parser.tab.c"
+#line 1578 "SysY_parser.tab.c"
     break;
 
-  case 15: /* FuncFParams: FuncFParam  */
-#line 178 "parser/SysY_parser.y"
+  case 19: /* FuncDef: FLOAT IDENT '(' FuncFParams ')' Block  */
+#line 179 "parser/SysY_parser.y"
+                                      {
+    (yyval.func_def) = new __FuncDef(Type::FLOAT,(yyvsp[-4].symbol_token),(yyvsp[-2].formals),(yyvsp[0].block));
+    (yyval.func_def)->SetLineNumber(line_number);
+}
+#line 1587 "SysY_parser.tab.c"
+    break;
+
+  case 20: /* FuncDef: FLOAT IDENT '(' ')' Block  */
+#line 184 "parser/SysY_parser.y"
+{
+    (yyval.func_def) = new __FuncDef(Type::FLOAT,(yyvsp[-3].symbol_token),new std::vector<FuncFParam>(),(yyvsp[0].block)); 
+    (yyval.func_def)->SetLineNumber(line_number);
+}
+#line 1596 "SysY_parser.tab.c"
+    break;
+
+  case 21: /* FuncDef: NONE_TYPE IDENT '(' FuncFParams ')' Block  */
+#line 188 "parser/SysY_parser.y"
+                                          {
+    (yyval.func_def) = new __FuncDef(Type::VOID,(yyvsp[-4].symbol_token),(yyvsp[-2].formals),(yyvsp[0].block));
+    (yyval.func_def)->SetLineNumber(line_number);
+}
+#line 1605 "SysY_parser.tab.c"
+    break;
+
+  case 22: /* FuncDef: NONE_TYPE IDENT '(' ')' Block  */
+#line 193 "parser/SysY_parser.y"
+{
+    (yyval.func_def) = new __FuncDef(Type::VOID,(yyvsp[-3].symbol_token),new std::vector<FuncFParam>(),(yyvsp[0].block)); 
+    (yyval.func_def)->SetLineNumber(line_number);
+}
+#line 1614 "SysY_parser.tab.c"
+    break;
+
+  case 23: /* VarDef: IDENT '=' VarInitVal  */
+#line 202 "parser/SysY_parser.y"
+{(yyval.def) = new VarDef((yyvsp[-2].symbol_token),nullptr,(yyvsp[0].initval)); (yyval.def)->SetLineNumber(line_number);}
+#line 1620 "SysY_parser.tab.c"
+    break;
+
+  case 24: /* VarDef: IDENT  */
+#line 204 "parser/SysY_parser.y"
+{(yyval.def) = new VarDef_no_init((yyvsp[0].symbol_token),nullptr); (yyval.def)->SetLineNumber(line_number);}
+#line 1626 "SysY_parser.tab.c"
+    break;
+
+  case 25: /* VarDef: IDENT Array_list '=' VarInitVal  */
+#line 206 "parser/SysY_parser.y"
+{(yyval.def) = new VarDef((yyvsp[-3].symbol_token),(yyvsp[-2].expressions),(yyvsp[0].initval)); (yyval.def)->SetLineNumber(line_number);}
+#line 1632 "SysY_parser.tab.c"
+    break;
+
+  case 26: /* VarDef: IDENT Array_list  */
+#line 208 "parser/SysY_parser.y"
+{(yyval.def) = new VarDef_no_init((yyvsp[-1].symbol_token),(yyvsp[0].expressions)); (yyval.def)->SetLineNumber(line_number);}
+#line 1638 "SysY_parser.tab.c"
+    break;
+
+  case 27: /* ConstDef: IDENT '=' ConstInitVal  */
+#line 216 "parser/SysY_parser.y"
+{(yyval.def) = new ConstDef((yyvsp[-2].symbol_token),nullptr,(yyvsp[0].initval)); (yyval.def)->SetLineNumber(line_number);}
+#line 1644 "SysY_parser.tab.c"
+    break;
+
+  case 28: /* ConstDef: IDENT ConstArray_list '=' ConstInitVal  */
+#line 218 "parser/SysY_parser.y"
+{(yyval.def) = new VarDef((yyvsp[-3].symbol_token),(yyvsp[-2].expressions),(yyvsp[0].initval)); (yyval.def)->SetLineNumber(line_number);}
+#line 1650 "SysY_parser.tab.c"
+    break;
+
+  case 29: /* ConstInitVal: '{' '}'  */
+#line 224 "parser/SysY_parser.y"
+        {(yyval.initval) = new ConstInitVal(new std::vector<InitVal>()); (yyval.initval)->SetLineNumber(line_number);}
+#line 1656 "SysY_parser.tab.c"
+    break;
+
+  case 30: /* ConstInitVal: '{' ConstInitVal_list '}'  */
+#line 226 "parser/SysY_parser.y"
+                        {
+    (yyval.initval)=new ConstInitVal((yyvsp[-1].initvals));
+   (yyval.initval)->SetLineNumber(line_number);
+}
+#line 1665 "SysY_parser.tab.c"
+    break;
+
+  case 31: /* ConstInitVal: ConstExp  */
+#line 230 "parser/SysY_parser.y"
+         {
+    (yyval.initval)=new ConstInitVal_exp((yyvsp[0].expression));
+    (yyval.initval)->SetLineNumber(line_number);
+}
+#line 1674 "SysY_parser.tab.c"
+    break;
+
+  case 32: /* VarInitVal: '{' '}'  */
+#line 239 "parser/SysY_parser.y"
+        {
+    (yyval.initval) = new VarInitVal(new std::vector<InitVal>()); 
+    (yyval.initval)->SetLineNumber(line_number);
+}
+#line 1683 "SysY_parser.tab.c"
+    break;
+
+  case 33: /* VarInitVal: '{' VarInitVal_list '}'  */
+#line 243 "parser/SysY_parser.y"
+                      {
+    (yyval.initval)=new VarInitVal((yyvsp[-1].initvals));
+    (yyval.initval)->SetLineNumber(line_number);
+}
+#line 1692 "SysY_parser.tab.c"
+    break;
+
+  case 34: /* VarInitVal: Exp  */
+#line 247 "parser/SysY_parser.y"
+    {
+    (yyval.initval)=new VarInitVal_exp((yyvsp[0].expression));
+    (yyval.initval)->SetLineNumber(line_number);
+}
+#line 1701 "SysY_parser.tab.c"
+    break;
+
+  case 35: /* ConstInitVal_list: ConstInitVal  */
+#line 254 "parser/SysY_parser.y"
+             {
+    (yyval.initvals)=new std::vector<InitVal>;
+    ((yyval.initvals))->push_back((yyvsp[0].initval));
+}
+#line 1710 "SysY_parser.tab.c"
+    break;
+
+  case 36: /* ConstInitVal_list: ConstInitVal_list ',' ConstInitVal  */
+#line 258 "parser/SysY_parser.y"
+                                   {
+    ((yyvsp[-2].initvals))->push_back((yyvsp[0].initval));
+    (yyval.initvals)=(yyvsp[-2].initvals);
+}
+#line 1719 "SysY_parser.tab.c"
+    break;
+
+  case 37: /* VarInitVal_list: VarInitVal  */
+#line 268 "parser/SysY_parser.y"
+           {
+    (yyval.initvals)=new std::vector<InitVal>;
+    ((yyval.initvals))->push_back((yyvsp[0].initval));
+}
+#line 1728 "SysY_parser.tab.c"
+    break;
+
+  case 38: /* VarInitVal_list: VarInitVal_list ',' VarInitVal  */
+#line 272 "parser/SysY_parser.y"
+                               {
+    ((yyvsp[-2].initvals))->push_back((yyvsp[0].initval));
+    (yyval.initvals)=(yyvsp[-2].initvals);
+}
+#line 1737 "SysY_parser.tab.c"
+    break;
+
+  case 39: /* FuncFParams: FuncFParam  */
+#line 280 "parser/SysY_parser.y"
            {
     (yyval.formals) = new std::vector<FuncFParam>;
     ((yyval.formals))->push_back((yyvsp[0].formal));
 }
-#line 1369 "SysY_parser.tab.c"
+#line 1746 "SysY_parser.tab.c"
     break;
 
-  case 16: /* FuncFParams: FuncFParams ',' FuncFParam  */
-#line 182 "parser/SysY_parser.y"
+  case 40: /* FuncFParams: FuncFParams ',' FuncFParam  */
+#line 284 "parser/SysY_parser.y"
                            {
     ((yyvsp[-2].formals))->push_back((yyvsp[0].formal));
     (yyval.formals) = (yyvsp[-2].formals);
 }
-#line 1378 "SysY_parser.tab.c"
+#line 1755 "SysY_parser.tab.c"
     break;
 
-  case 17: /* FuncFParam: INT IDENT  */
-#line 189 "parser/SysY_parser.y"
+  case 41: /* FuncFParam: INT IDENT  */
+#line 294 "parser/SysY_parser.y"
           {
     (yyval.formal) = new __FuncFParam(Type::INT,(yyvsp[0].symbol_token),nullptr);
     (yyval.formal)->SetLineNumber(line_number);
 }
-#line 1387 "SysY_parser.tab.c"
+#line 1764 "SysY_parser.tab.c"
     break;
 
-  case 18: /* Block: '{' BlockItem_list '}'  */
-#line 197 "parser/SysY_parser.y"
+  case 42: /* FuncFParam: FLOAT IDENT  */
+#line 298 "parser/SysY_parser.y"
+            {
+    (yyval.formal) = new __FuncFParam(Type::FLOAT,(yyvsp[0].symbol_token),nullptr);
+    (yyval.formal)->SetLineNumber(line_number);
+}
+#line 1773 "SysY_parser.tab.c"
+    break;
+
+  case 43: /* FuncFParam: INT IDENT '[' ']'  */
+#line 302 "parser/SysY_parser.y"
+                 {
+  std::vector<Expression>* t = new std::vector<Expression>;
+    t->push_back(nullptr);
+    (yyval.formal) = new __FuncFParam(Type::INT,(yyvsp[-2].symbol_token),t);
+    (yyval.formal)->SetLineNumber(line_number);
+}
+#line 1784 "SysY_parser.tab.c"
+    break;
+
+  case 44: /* FuncFParam: FLOAT IDENT '[' ']'  */
+#line 308 "parser/SysY_parser.y"
+                      {
+    std::vector<Expression>* t = new std::vector<Expression>;
+    t->push_back(nullptr);
+    (yyval.formal) = new __FuncFParam(Type::FLOAT,(yyvsp[-2].symbol_token),t);
+    (yyval.formal)->SetLineNumber(line_number);
+}
+#line 1795 "SysY_parser.tab.c"
+    break;
+
+  case 45: /* FuncFParam: INT IDENT '[' ']' Array_list  */
+#line 314 "parser/SysY_parser.y"
+                             {
+    (yyvsp[0].expressions)->insert((yyvsp[0].expressions)->begin(),nullptr);
+    (yyval.formal) = new __FuncFParam(Type::INT,(yyvsp[-3].symbol_token),(yyvsp[0].expressions));
+    (yyval.formal)->SetLineNumber(line_number);
+}
+#line 1805 "SysY_parser.tab.c"
+    break;
+
+  case 46: /* FuncFParam: FLOAT IDENT '[' ']' Array_list  */
+#line 319 "parser/SysY_parser.y"
+                               {
+    (yyvsp[0].expressions)->insert((yyvsp[0].expressions)->begin(),nullptr);
+    (yyval.formal) = new __FuncFParam(Type::FLOAT,(yyvsp[-3].symbol_token),(yyvsp[0].expressions));
+    (yyval.formal)->SetLineNumber(line_number);
+}
+#line 1815 "SysY_parser.tab.c"
+    break;
+
+  case 47: /* Block: '{' BlockItem_list '}'  */
+#line 328 "parser/SysY_parser.y"
                        {
     (yyval.block) = new __Block((yyvsp[-1].block_items));
     (yyval.block)->SetLineNumber(line_number);
 }
-#line 1396 "SysY_parser.tab.c"
+#line 1824 "SysY_parser.tab.c"
     break;
 
-  case 19: /* Block: '{' '}'  */
-#line 201 "parser/SysY_parser.y"
+  case 48: /* Block: '{' '}'  */
+#line 332 "parser/SysY_parser.y"
         {
     (yyval.block) = new __Block(new std::vector<BlockItem>);
     (yyval.block)->SetLineNumber(line_number);
 }
-#line 1405 "SysY_parser.tab.c"
+#line 1833 "SysY_parser.tab.c"
     break;
 
-  case 20: /* BlockItem_list: TODO  */
-#line 208 "parser/SysY_parser.y"
-     {}
-#line 1411 "SysY_parser.tab.c"
+  case 49: /* BlockItem_list: BlockItem  */
+#line 339 "parser/SysY_parser.y"
+          {
+    (yyval.block_items) = new std::vector<BlockItem>;
+    ((yyval.block_items))->push_back((yyvsp[0].block_item));
+}
+#line 1842 "SysY_parser.tab.c"
+    break;
+
+  case 50: /* BlockItem_list: BlockItem_list BlockItem  */
+#line 343 "parser/SysY_parser.y"
+                         {
+    ((yyvsp[-1].block_items))->push_back((yyvsp[0].block_item));
+    (yyval.block_items) = (yyvsp[-1].block_items);
+}
+#line 1851 "SysY_parser.tab.c"
+    break;
+
+  case 51: /* BlockItem: Stmt  */
+#line 351 "parser/SysY_parser.y"
+     {
+    (yyval.block_item) = new BlockItem_Stmt((yyvsp[0].stmt));
+    (yyval.block_item)->SetLineNumber(line_number);
+}
+#line 1860 "SysY_parser.tab.c"
+    break;
+
+  case 52: /* BlockItem: Decl  */
+#line 355 "parser/SysY_parser.y"
+     {
+    (yyval.block_item) = new BlockItem_Decl((yyvsp[0].decl));
+    (yyval.block_item)->SetLineNumber(line_number);
+}
+#line 1869 "SysY_parser.tab.c"
+    break;
+
+  case 53: /* Stmt: Lval '=' Exp ';'  */
+#line 363 "parser/SysY_parser.y"
+                  {
+    (yyval.stmt) = new assign_stmt((yyvsp[-3].expression), (yyvsp[-1].expression));
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1878 "SysY_parser.tab.c"
+    break;
+
+  case 54: /* Stmt: ';'  */
+#line 367 "parser/SysY_parser.y"
+    {
+    (yyval.stmt) = new null_stmt();
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1887 "SysY_parser.tab.c"
+    break;
+
+  case 55: /* Stmt: Block  */
+#line 371 "parser/SysY_parser.y"
+      {
+    (yyval.stmt) = new block_stmt((yyvsp[0].block));
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1896 "SysY_parser.tab.c"
+    break;
+
+  case 56: /* Stmt: Exp ';'  */
+#line 375 "parser/SysY_parser.y"
+        {
+    (yyval.stmt) = new expr_stmt((yyvsp[-1].expression));
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1905 "SysY_parser.tab.c"
+    break;
+
+  case 57: /* Stmt: WHILE '(' Cond ')' Stmt  */
+#line 379 "parser/SysY_parser.y"
+                        {
+    (yyval.stmt) = new while_stmt((yyvsp[-2].expression),(yyvsp[0].stmt));
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1914 "SysY_parser.tab.c"
+    break;
+
+  case 58: /* Stmt: IF '(' Cond ')' Stmt  */
+#line 383 "parser/SysY_parser.y"
+                                {
+    (yyval.stmt) = new if_stmt((yyvsp[-2].expression),(yyvsp[0].stmt));
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1923 "SysY_parser.tab.c"
+    break;
+
+  case 59: /* Stmt: IF '(' Cond ')' Stmt ELSE Stmt  */
+#line 387 "parser/SysY_parser.y"
+                               {
+    (yyval.stmt) = new ifelse_stmt((yyvsp[-4].expression),(yyvsp[-2].stmt),(yyvsp[0].stmt));
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1932 "SysY_parser.tab.c"
+    break;
+
+  case 60: /* Stmt: BREAK ';'  */
+#line 391 "parser/SysY_parser.y"
+          {
+    (yyval.stmt) = new break_stmt();
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1941 "SysY_parser.tab.c"
+    break;
+
+  case 61: /* Stmt: CONTINUE ';'  */
+#line 395 "parser/SysY_parser.y"
+             {
+    (yyval.stmt) = new continue_stmt();
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1950 "SysY_parser.tab.c"
+    break;
+
+  case 62: /* Stmt: RETURN Exp ';'  */
+#line 399 "parser/SysY_parser.y"
+               {
+    (yyval.stmt) = new return_stmt((yyvsp[-1].expression));
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1959 "SysY_parser.tab.c"
+    break;
+
+  case 63: /* Stmt: RETURN ';'  */
+#line 403 "parser/SysY_parser.y"
+           {
+    (yyval.stmt) = new return_stmt_void();
+    (yyval.stmt)->SetLineNumber(line_number);
+}
+#line 1968 "SysY_parser.tab.c"
+    break;
+
+  case 64: /* Exp: AddExp  */
+#line 411 "parser/SysY_parser.y"
+       {(yyval.expression) = (yyvsp[0].expression); (yyval.expression)->SetLineNumber(line_number);}
+#line 1974 "SysY_parser.tab.c"
+    break;
+
+  case 65: /* Cond: LOrExp  */
+#line 415 "parser/SysY_parser.y"
+       {(yyval.expression) = (yyvsp[0].expression); (yyval.expression)->SetLineNumber(line_number);}
+#line 1980 "SysY_parser.tab.c"
+    break;
+
+  case 66: /* Lval: IDENT  */
+#line 420 "parser/SysY_parser.y"
+      {
+    (yyval.expression)=new Lval((yyvsp[0].symbol_token),nullptr);
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 1989 "SysY_parser.tab.c"
+    break;
+
+  case 67: /* Lval: IDENT Array_list  */
+#line 424 "parser/SysY_parser.y"
+                 {
+    (yyval.expression)=new Lval((yyvsp[-1].symbol_token),(yyvsp[0].expressions));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 1998 "SysY_parser.tab.c"
+    break;
+
+  case 68: /* PrimaryExp: '(' Exp ')'  */
+#line 432 "parser/SysY_parser.y"
+           {
+    (yyval.expression)=new PrimaryExp_branch((yyvsp[-1].expression));
+     (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2007 "SysY_parser.tab.c"
+    break;
+
+  case 69: /* PrimaryExp: Lval  */
+#line 436 "parser/SysY_parser.y"
+     {
+    (yyval.expression) = (yyvsp[0].expression); 
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2016 "SysY_parser.tab.c"
+    break;
+
+  case 70: /* PrimaryExp: FloatConst  */
+#line 440 "parser/SysY_parser.y"
+           {
+    (yyval.expression) = (yyvsp[0].expression); 
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2025 "SysY_parser.tab.c"
+    break;
+
+  case 71: /* PrimaryExp: IntConst  */
+#line 444 "parser/SysY_parser.y"
+         {
+    (yyval.expression) = (yyvsp[0].expression); 
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2034 "SysY_parser.tab.c"
+    break;
+
+  case 72: /* IntConst: INT_CONST  */
+#line 453 "parser/SysY_parser.y"
+          {
+    (yyval.expression) = new IntConst((yyvsp[0].int_token));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2043 "SysY_parser.tab.c"
+    break;
+
+  case 73: /* FloatConst: FLOAT_CONST  */
+#line 460 "parser/SysY_parser.y"
+            {
+    (yyval.expression) = new FloatConst((yyvsp[0].float_token));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2052 "SysY_parser.tab.c"
+    break;
+
+  case 74: /* UnaryExp: PrimaryExp  */
+#line 468 "parser/SysY_parser.y"
+           {(yyval.expression) = (yyvsp[0].expression);}
+#line 2058 "SysY_parser.tab.c"
+    break;
+
+  case 75: /* UnaryExp: IDENT '(' FuncRParams ')'  */
+#line 469 "parser/SysY_parser.y"
+                          {
+    (yyval.expression) = new Func_call((yyvsp[-3].symbol_token),(yyvsp[-1].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2067 "SysY_parser.tab.c"
+    break;
+
+  case 76: /* UnaryExp: IDENT '(' ')'  */
+#line 473 "parser/SysY_parser.y"
+              {
+    // 在sylib.h这个文件中,starttime()是一个宏定义
+    // #define starttime() _sysy_starttime(__LINE__)
+    // 我们在语法分析中将其替换为_sysy_starttime(line_number)
+    // stoptime同理
+    if((yyvsp[-2].symbol_token)->get_string() == "starttime"){
+        auto params = new std::vector<Expression>;
+        params->push_back(new IntConst(line_number));
+        Expression temp = new FuncRParams(params);
+        (yyval.expression) = new Func_call(id_table.add_id("_sysy_starttime"),temp);
+        (yyval.expression)->SetLineNumber(line_number);
+    }
+    else if((yyvsp[-2].symbol_token)->get_string() == "stoptime"){
+        auto params = new std::vector<Expression>;
+        params->push_back(new IntConst(line_number));
+        Expression temp = new FuncRParams(params);
+        (yyval.expression) = new Func_call(id_table.add_id("_sysy_stoptime"),temp);
+        (yyval.expression)->SetLineNumber(line_number);
+    }
+    else{
+        (yyval.expression) = new Func_call((yyvsp[-2].symbol_token),nullptr);
+        (yyval.expression)->SetLineNumber(line_number);
+    }
+}
+#line 2096 "SysY_parser.tab.c"
+    break;
+
+  case 77: /* UnaryExp: '+' UnaryExp  */
+#line 497 "parser/SysY_parser.y"
+             {
+    (yyval.expression) = new UnaryExp_plus((yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2105 "SysY_parser.tab.c"
+    break;
+
+  case 78: /* UnaryExp: '-' UnaryExp  */
+#line 501 "parser/SysY_parser.y"
+             {
+    (yyval.expression) = new UnaryExp_neg((yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2114 "SysY_parser.tab.c"
+    break;
+
+  case 79: /* UnaryExp: '!' UnaryExp  */
+#line 505 "parser/SysY_parser.y"
+             {
+    (yyval.expression) = new UnaryExp_not((yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2123 "SysY_parser.tab.c"
+    break;
+
+  case 80: /* FuncRParams: Exp_list  */
+#line 512 "parser/SysY_parser.y"
+         {
+    (yyval.expression) = new FuncRParams((yyvsp[0].expressions));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2132 "SysY_parser.tab.c"
+    break;
+
+  case 81: /* Exp_list: Exp  */
+#line 520 "parser/SysY_parser.y"
+    {
+    (yyval.expressions) = new std::vector<Expression>;
+    ((yyval.expressions))->push_back((yyvsp[0].expression));
+}
+#line 2141 "SysY_parser.tab.c"
+    break;
+
+  case 82: /* Exp_list: Exp_list ',' Exp  */
+#line 524 "parser/SysY_parser.y"
+                 {
+    ((yyvsp[-2].expressions))->push_back((yyvsp[0].expression));
+    (yyval.expressions) = (yyvsp[-2].expressions);
+}
+#line 2150 "SysY_parser.tab.c"
+    break;
+
+  case 83: /* MulExp: UnaryExp  */
+#line 532 "parser/SysY_parser.y"
+         {(yyval.expression) = (yyvsp[0].expression);(yyval.expression)->SetLineNumber(line_number);}
+#line 2156 "SysY_parser.tab.c"
+    break;
+
+  case 84: /* MulExp: MulExp '*' UnaryExp  */
+#line 533 "parser/SysY_parser.y"
+                    {
+    (yyval.expression) = new MulExp_mul((yyvsp[-2].expression),(yyvsp[0].expression)); 
+    (yyval.expression)->SetLineNumber(line_number);
+    }
+#line 2165 "SysY_parser.tab.c"
+    break;
+
+  case 85: /* MulExp: MulExp '/' UnaryExp  */
+#line 537 "parser/SysY_parser.y"
+                    {
+    (yyval.expression) = new MulExp_div((yyvsp[-2].expression),(yyvsp[0].expression)); 
+    (yyval.expression)->SetLineNumber(line_number);
+    }
+#line 2174 "SysY_parser.tab.c"
+    break;
+
+  case 86: /* MulExp: MulExp '%' UnaryExp  */
+#line 541 "parser/SysY_parser.y"
+                    {
+    (yyval.expression) = new MulExp_mod((yyvsp[-2].expression),(yyvsp[0].expression)); 
+    (yyval.expression)->SetLineNumber(line_number);
+    }
+#line 2183 "SysY_parser.tab.c"
+    break;
+
+  case 87: /* AddExp: MulExp  */
+#line 551 "parser/SysY_parser.y"
+       {
+    (yyval.expression) = (yyvsp[0].expression);
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2192 "SysY_parser.tab.c"
+    break;
+
+  case 88: /* AddExp: AddExp '+' MulExp  */
+#line 555 "parser/SysY_parser.y"
+                  {
+    (yyval.expression) = new AddExp_plus((yyvsp[-2].expression),(yyvsp[0].expression)); 
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2201 "SysY_parser.tab.c"
+    break;
+
+  case 89: /* AddExp: AddExp '-' MulExp  */
+#line 559 "parser/SysY_parser.y"
+                  {
+    (yyval.expression) = new AddExp_sub((yyvsp[-2].expression),(yyvsp[0].expression)); 
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2210 "SysY_parser.tab.c"
+    break;
+
+  case 90: /* RelExp: AddExp  */
+#line 566 "parser/SysY_parser.y"
+       {
+    (yyval.expression) = (yyvsp[0].expression);
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2219 "SysY_parser.tab.c"
+    break;
+
+  case 91: /* RelExp: RelExp LEQ AddExp  */
+#line 570 "parser/SysY_parser.y"
+                  {
+    (yyval.expression)=new RelExp_leq((yyvsp[-2].expression),(yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2228 "SysY_parser.tab.c"
+    break;
+
+  case 92: /* RelExp: RelExp '<' AddExp  */
+#line 574 "parser/SysY_parser.y"
+                  {
+    (yyval.expression)=new RelExp_lt((yyvsp[-2].expression),(yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2237 "SysY_parser.tab.c"
+    break;
+
+  case 93: /* RelExp: RelExp GEQ AddExp  */
+#line 578 "parser/SysY_parser.y"
+                   {
+    (yyval.expression)=new RelExp_geq((yyvsp[-2].expression),(yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2246 "SysY_parser.tab.c"
+    break;
+
+  case 94: /* RelExp: RelExp '>' AddExp  */
+#line 582 "parser/SysY_parser.y"
+                  {
+    (yyval.expression)=new RelExp_gt((yyvsp[-2].expression),(yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2255 "SysY_parser.tab.c"
+    break;
+
+  case 95: /* EqExp: RelExp  */
+#line 590 "parser/SysY_parser.y"
+       {(yyval.expression) = (yyvsp[0].expression);(yyval.expression)->SetLineNumber(line_number);}
+#line 2261 "SysY_parser.tab.c"
+    break;
+
+  case 96: /* EqExp: EqExp EQ RelExp  */
+#line 591 "parser/SysY_parser.y"
+                {
+    (yyval.expression)=new EqExp_eq((yyvsp[-2].expression),(yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2270 "SysY_parser.tab.c"
+    break;
+
+  case 97: /* EqExp: EqExp NE RelExp  */
+#line 595 "parser/SysY_parser.y"
+                {
+    (yyval.expression)=new EqExp_neq((yyvsp[-2].expression),(yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2279 "SysY_parser.tab.c"
+    break;
+
+  case 98: /* LAndExp: EqExp  */
+#line 603 "parser/SysY_parser.y"
+      {(yyval.expression) = (yyvsp[0].expression);(yyval.expression)->SetLineNumber(line_number);}
+#line 2285 "SysY_parser.tab.c"
+    break;
+
+  case 99: /* LAndExp: LAndExp AND EqExp  */
+#line 604 "parser/SysY_parser.y"
+                  {
+    (yyval.expression)=new LAndExp_and((yyvsp[-2].expression),(yyvsp[0].expression));
+    (yyval.expression)->SetLineNumber(line_number);
+}
+#line 2294 "SysY_parser.tab.c"
+    break;
+
+  case 100: /* LOrExp: LAndExp  */
+#line 612 "parser/SysY_parser.y"
+        {(yyval.expression) = (yyvsp[0].expression);(yyval.expression)->SetLineNumber(line_number);}
+#line 2300 "SysY_parser.tab.c"
+    break;
+
+  case 101: /* LOrExp: LOrExp OR LAndExp  */
+#line 613 "parser/SysY_parser.y"
+                  {(yyval.expression) = new LOrExp_or((yyvsp[-2].expression),(yyvsp[0].expression)); (yyval.expression)->SetLineNumber(line_number);}
+#line 2306 "SysY_parser.tab.c"
+    break;
+
+  case 102: /* ConstExp: AddExp  */
+#line 619 "parser/SysY_parser.y"
+       {(yyval.expression) = (yyvsp[0].expression);(yyval.expression)->SetLineNumber(line_number);}
+#line 2312 "SysY_parser.tab.c"
+    break;
+
+  case 103: /* Array: '[' Exp ']'  */
+#line 625 "parser/SysY_parser.y"
+            {(yyval.expression) = (yyvsp[-1].expression);(yyval.expression)->SetLineNumber(line_number);}
+#line 2318 "SysY_parser.tab.c"
+    break;
+
+  case 104: /* Array_list: Array  */
+#line 630 "parser/SysY_parser.y"
+{
+    (yyval.expressions) = new std::vector<Expression>;
+    ((yyval.expressions))->push_back((yyvsp[0].expression));
+}
+#line 2327 "SysY_parser.tab.c"
+    break;
+
+  case 105: /* Array_list: Array_list Array  */
+#line 635 "parser/SysY_parser.y"
+{
+    ((yyvsp[-1].expressions))->push_back((yyvsp[0].expression));
+    (yyval.expressions) = (yyvsp[-1].expressions);
+}
+#line 2336 "SysY_parser.tab.c"
+    break;
+
+  case 106: /* ConstArray: '[' ConstExp ']'  */
+#line 642 "parser/SysY_parser.y"
+                 {(yyval.expression) = (yyvsp[-1].expression);(yyval.expression)->SetLineNumber(line_number);}
+#line 2342 "SysY_parser.tab.c"
+    break;
+
+  case 107: /* ConstArray_list: ConstArray  */
+#line 647 "parser/SysY_parser.y"
+{
+    (yyval.expressions) = new std::vector<Expression>;
+    ((yyval.expressions))->push_back((yyvsp[0].expression));
+}
+#line 2351 "SysY_parser.tab.c"
+    break;
+
+  case 108: /* ConstArray_list: ConstArray_list ConstArray  */
+#line 652 "parser/SysY_parser.y"
+{
+    ((yyvsp[-1].expressions))->push_back((yyvsp[0].expression));
+    (yyval.expressions) = (yyvsp[-1].expressions);
+}
+#line 2360 "SysY_parser.tab.c"
     break;
 
 
-#line 1415 "SysY_parser.tab.c"
+#line 2364 "SysY_parser.tab.c"
 
       default: break;
     }
@@ -1609,7 +2558,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 342 "parser/SysY_parser.y"
+#line 660 "parser/SysY_parser.y"
  
 
 void yyerror(char* s, ...)
