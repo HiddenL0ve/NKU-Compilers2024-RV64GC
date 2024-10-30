@@ -29,6 +29,7 @@ public:
     }
 };
 
+// 变量的属性
 class VarAttribute {
 public:
     Type::ty type;
@@ -44,6 +45,7 @@ public:
     }
 };
 
+// 语法树节点的属性
 class NodeAttribute {
 public:
     int line_number = -1;
