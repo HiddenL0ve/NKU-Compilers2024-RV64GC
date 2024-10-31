@@ -27,11 +27,16 @@ extern LLVMIR llvmIR;
 SemantTable semant_table;
 std::vector<std::string> error_msgs{}; // 将语义错误信息保存到该变量中
 
+bool ishasmain=false;
+
 void __Program::TypeCheck() {
     semant_table.symbol_table.enter_scope();
     auto comp_vector = *comp_list;
     for (auto comp : comp_vector) {
         comp->TypeCheck();
+    }
+    if(!ishasmain){
+        error_msgs.push_back("the main function does not exist.\n");
     }
 }
 
@@ -221,7 +226,10 @@ void VarDef::TypeCheck() { TODO("VarDef Semant"); }
 
 void ConstDef::TypeCheck() { TODO("ConstDef Semant"); }
 
-void VarDecl::TypeCheck() { TODO("VarDecl Semant"); }
+void VarDecl::TypeCheck() { 
+ 
+   
+     }
 
 void ConstDecl::TypeCheck() { TODO("ConstDecl Semant"); }
 
@@ -281,7 +289,9 @@ void __FuncDef::TypeCheck() {
     semant_table.symbol_table.enter_scope();
 
     semant_table.FunctionTable[name] = this;
-
+    if(name->get_string()=="main"){
+        ishasmain=true;
+    }
     auto formal_vector = *formals;
     for (auto formal : formal_vector) {
         formal->TypeCheck();
