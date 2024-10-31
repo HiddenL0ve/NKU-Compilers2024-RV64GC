@@ -1,9 +1,4 @@
 Program
-  FuncDef   Name:f   ReturnType: Int
-    Block   Size:1
-      ReturnStmt:
-        FuncCall   name:a   Type: Void   
-          Empty params
   FuncDef   Name:main   ReturnType: Int
     Block   Size:8
       VarDecls   Type: Int
