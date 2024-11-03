@@ -1,0 +1,9 @@
+
+int b = 7;
+int a = 5;
+int a = 13;
+int c = 55;
+int main(){
+    float a=0.1;
+    float a=1;
+}

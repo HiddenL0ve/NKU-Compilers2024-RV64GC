@@ -189,6 +189,7 @@ class Lval : public __Expression {
 public:
     Symbol name;
     std::vector<Expression> *dims;
+    bool is_left = true;
     // 如果dims为nullptr, 表示该变量不含数组下标, 你也可以通过其他方式判断，但需要修改SysY_parser.y已有的代码
 
     int scope = -1;    // 在语义分析阶段填入正确的作用域
@@ -405,6 +406,11 @@ typedef __Decl *Decl;
 
 class __InitVal : public tree_node {
 public:
+    virtual int IsExp() = 0;
+    virtual int IsConst() = 0;
+    virtual std::vector<__InitVal *> *GetList() = 0;
+    virtual Expression GetExp() = 0;
+
 };
 typedef __InitVal *InitVal;
 
@@ -417,6 +423,10 @@ public:
     void codeIR();
     void TypeCheck();
     void printAST(std::ostream &s, long long int pad);
+    int IsExp() { return 0; }
+    int IsConst() { return 1; }
+    std::vector<InitVal> *GetList() { return initval; }
+    Expression GetExp() { return NULL; }
 };
 
 class ConstInitVal_exp : public __InitVal {
@@ -426,6 +436,10 @@ public:
     void codeIR();
     void TypeCheck();
     void printAST(std::ostream &s, long long int pad);
+    int IsExp() { return 1; }
+    int IsConst() { return 1; }
+    std::vector<InitVal> *GetList() { return NULL; }
+    Expression GetExp() { return exp; }
 };
 
 // InitVal -> {InitVal,InitVal,InitVal,...}
@@ -436,6 +450,10 @@ public:
     void codeIR();
     void TypeCheck();
     void printAST(std::ostream &s, long long int pad);
+    int IsExp() { return 0; }
+    int IsConst() { return 0; }
+    std::vector<InitVal> *GetList() { return initval; }
+    Expression GetExp() { return NULL; }
 };
 
 class VarInitVal_exp : public __InitVal {
@@ -445,12 +463,21 @@ public:
     void codeIR();
     void TypeCheck();
     void printAST(std::ostream &s, long long int pad);
+    int IsExp() { return 1; }
+    int IsConst() { return 0; }
+    std::vector<InitVal> *GetList() { return NULL; }
+    Expression GetExp() { return exp; }
 };
 
 class __Def : public tree_node {
 public:
     int scope = -1;    // 在语义分析阶段填入正确的作用域
-};
+    virtual int IsInit() = 0;
+    virtual int IsConst() = 0;
+    virtual Symbol get_name() = 0;
+    virtual std::vector<Expression> *get_dims() =0;
+    virtual InitVal get_init()=0;
+};  
 typedef __Def *Def;
 
 class VarDef_no_init : public __Def {
@@ -459,7 +486,11 @@ public:
     std::vector<Expression> *dims;
     // 如果dims为nullptr, 表示该变量不含数组下标, 你也可以通过其他方式判断，但需要修改SysY_parser.y已有的代码
     VarDef_no_init(Symbol n, std::vector<Expression> *d) : name(n), dims(d) {}
-
+    int IsInit() { return 0; }
+    virtual int IsConst() { return 0; }
+    Symbol get_name(){ return name;}
+    std::vector<Expression> *get_dims() { return dims; }
+    InitVal get_init(){return nullptr;}
     void codeIR();
     void TypeCheck();
     void printAST(std::ostream &s, long long int pad);
@@ -473,6 +504,11 @@ public:
     InitVal init;
     VarDef(Symbol n, std::vector<Expression> *d, InitVal i) : name(n), dims(d), init(i) {}
 
+    int IsInit() { return 1; }
+    virtual int IsConst() { return 0; }
+    Symbol get_name(){ return name;}
+    std::vector<Expression> *get_dims() { return dims; }
+    InitVal get_init(){return init;}
     void codeIR();
     void TypeCheck();
     void printAST(std::ostream &s, long long int pad);
@@ -485,7 +521,11 @@ public:
     // 如果dims为nullptr, 表示该变量不含数组下标, 你也可以通过其他方式判断，但需要修改SysY_parser.y已有的代码
     InitVal init;
     ConstDef(Symbol n, std::vector<Expression> *d, InitVal i) : name(n), dims(d), init(i) {}
-
+     int IsInit() { return 1; }
+    virtual int IsConst() { return 1; }
+    Symbol get_name(){ return name;}
+    std::vector<Expression> *get_dims() { return dims; }
+    InitVal get_init(){return init;}
     void codeIR();
     void TypeCheck();
     void printAST(std::ostream &s, long long int pad);
@@ -494,6 +534,9 @@ public:
 // decl basic_class
 class __Decl : public tree_node {
 public:
+    virtual int IsConst() = 0;
+    virtual std::vector<Def> *GetDefs() = 0;
+    virtual Type::ty GetTypedecl() = 0;
 };
 
 // var definition
@@ -503,6 +546,10 @@ public:
     std::vector<Def> *var_def_list{};
     // construction
     VarDecl(Type::ty t, std::vector<Def> *v) : type_decl(t), var_def_list(v) {}
+
+    int IsConst() { return 0; }
+    std::vector<Def> *GetDefs() { return var_def_list; }
+    Type::ty GetTypedecl() { return type_decl; }
 
     void codeIR();
     void TypeCheck();
@@ -516,6 +563,9 @@ public:
     std::vector<Def> *var_def_list{};
     // construction
     ConstDecl(Type::ty t, std::vector<Def> *v) : type_decl(t), var_def_list(v) {}
+    int IsConst() { return 1; }
+    Type::ty GetTypedecl() { return type_decl; }
+    std::vector<Def> *GetDefs() { return var_def_list; }
 
     void codeIR();
     void TypeCheck();
