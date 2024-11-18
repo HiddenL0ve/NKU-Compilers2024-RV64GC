@@ -643,6 +643,10 @@ public:
     Symbol name;
     std::vector<FuncFParam> *formals;
     Block block;
+    union  returnnum {
+        int returnmuni=1;
+        float returnmunf;
+    } num;
     bool returniszero;
     __FuncDef(Type::ty t, Symbol functionName, std::vector<FuncFParam> *f, Block b) {
         formals = f;

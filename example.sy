@@ -3,11 +3,11 @@ int b;
 int c;
 int d;
 int e;
-void f(){
-	return 1.0;
+int f(){
+	return 2;
 }
 int main()
 {
-	const int a=f();
+	int a=1/(f()-2);
 	return 0;
 }

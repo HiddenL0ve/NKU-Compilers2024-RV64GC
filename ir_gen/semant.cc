@@ -33,6 +33,7 @@ bool isinfunc=false;
 int returnnumi=1;
 float returnnumf=1.0;
 bool isinreturn=false;
+bool iscond=false;
 NodeAttribute TypeConvert(const NodeAttribute attr, Type::ty targetType) {
     NodeAttribute result = attr;
     result.T.type = targetType;
@@ -101,6 +102,8 @@ NodeAttribute SingleOperation(NodeAttribute attr, std::string op, int line_numbe
         else{
             error_msgs.push_back("Invalid operator '" + op + "' at line " + std::to_string(line_number) + "\n");
         }
+    }else {
+         error_msgs.push_back("Invalid operator '" + op + "' at line " + std::to_string(line_number) + "\n");
     }
     return result;
 }
@@ -461,7 +464,11 @@ void Lval::TypeCheck() { //变量作为左值使用时的检查
             }
             scope = 0;
         } else {
-            error_msgs.push_back("Undefined var in line " + std::to_string(line_number) + "\n");
+            if(iscond){
+                error_msgs.push_back("the cond type is invalid in line " + std::to_string(line_number) + "\n");
+            }
+                error_msgs.push_back("Undefined var in line " + std::to_string(line_number) + "\n");
+            
             return;
         }
     } else {
@@ -559,11 +566,20 @@ void Func_call::TypeCheck() {
     }else if(f->returniszero==true&&attribute.T.type==Type::FLOAT){
         attribute.V.val.FloatVal=0.0;
     }else if(f->returniszero==false&&attribute.T.type==Type::INT){
-         attribute.V.val.IntVal=1;
+         attribute.V.val.IntVal=f->num.returnmuni;
+         if(f->name->get_string()=="getint"||f->name->get_string()=="getarray"){
+            attribute.V.val.IntVal=2147483647;
+         }
     }else if(f->returniszero==false&&attribute.T.type==Type::FLOAT){
-        attribute.V.val.FloatVal=1.0;
+        attribute.V.val.FloatVal=f->num.returnmunf;
+        if(f->name->get_string()=="getfloat"||f->name->get_string()=="getfarray"){
+            attribute.V.val.FloatVal=2147483647.0;
+         }
     }else{
         attribute.V.val.IntVal=1;
+    }
+    if(iscond==true&&attribute.T.type==Type::VOID){
+        error_msgs.push_back("the cond type is invalid in line " + std::to_string(line_number) + "\n");   
     }
     attribute.V.ConstTag = false;
  }
@@ -647,27 +663,33 @@ void expr_stmt::TypeCheck() {
 void block_stmt::TypeCheck() { b->TypeCheck(); }
 
 void ifelse_stmt::TypeCheck() {
+    iscond=true;
     Cond->TypeCheck();
-    if (Cond->attribute.T.type == Type::VOID) {
-        error_msgs.push_back("if cond type is invalid in line " + std::to_string(line_number) + "\n");
-    }
+    iscond=false;
+    // if (Cond->attribute.T.type == Type::VOID) {
+    //     error_msgs.push_back("if cond type is invalid in line " + std::to_string(line_number) + "\n");
+    // }
     ifstmt->TypeCheck();
     elsestmt->TypeCheck();
 }
 
 void if_stmt::TypeCheck() {
+    iscond=true;
     Cond->TypeCheck();
-    if (Cond->attribute.T.type == Type::VOID) {
-        error_msgs.push_back("if cond type is invalid in line " + std::to_string(line_number) + "\n");
-    }
+    iscond=false;
+    // if (Cond->attribute.T.type == Type::VOID) {
+    //     error_msgs.push_back("if cond type is invalid in line " + std::to_string(line_number) + "\n");
+    // }
     ifstmt->TypeCheck();
 }
 
 void while_stmt::TypeCheck() { 
+    iscond=true;
     Cond->TypeCheck();
-    if(Cond->attribute.T.type==Type::VOID){
-         error_msgs.push_back("while cond type is invalid in line " + std::to_string(line_number) + "\n");
-    }
+    iscond=false;
+    // if(Cond->attribute.T.type==Type::VOID){
+    //      error_msgs.push_back("while cond type is invalid in line " + std::to_string(line_number) + "\n");
+    // }
     hasloop++;
     body->TypeCheck();
     hasloop--;
@@ -688,11 +710,13 @@ void return_stmt::TypeCheck() {
     isinreturn=true;
     return_exp->TypeCheck(); 
     if(return_exp->attribute.T.type==Type::INT)
-    {returnnumi=return_exp->attribute.V.val.IntVal;}
+    { 
+        returnnumi=return_exp->attribute.V.val.IntVal;
+       // printf("%d",returnnumi);
+        }
     else if(return_exp->attribute.T.type==Type::FLOAT)
     {returnnumf=return_exp->attribute.V.val.FloatVal;}
     isinreturn=false;
-
     if (return_exp->attribute.T.type == Type::VOID) {
         error_msgs.push_back("return type is invalid in line " + std::to_string(line_number) + "\n");
     }
@@ -965,9 +989,17 @@ void __FuncDef::TypeCheck() {
     }
     if(returnnumi==0&&return_type==Type::INT){
         this->returniszero=true;
+        this->num.returnmuni=returnnumi;
         semant_table.FunctionTable[name] = this;
-    }else if(returnnumf==0.0&&return_type==Type::INT){
+    }else if(returnnumf==0.0&&return_type==Type::FLOAT){
          this->returniszero=true;
+         this->num.returnmunf=returnnumf;
+        semant_table.FunctionTable[name] = this;
+    }else if(return_type==Type::INT){
+         this->num.returnmuni=returnnumi;
+        semant_table.FunctionTable[name] = this;
+    }else if(return_type==Type::FLOAT){
+        this->num.returnmunf=returnnumf;
         semant_table.FunctionTable[name] = this;
     }
 
