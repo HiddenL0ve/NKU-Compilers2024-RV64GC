@@ -66,24 +66,33 @@ NodeAttribute SingleOperation(NodeAttribute attr, std::string op, int line_numbe
     if (attr.T.type == Type::BOOL) {
         attr = TypeConvert(attr, Type::INT);
     }
+    // if(result.V.ConstTag){
+    //     error_msgs.push_back("Not a const " + std::to_string(line_number) + "\n");
+    // }
     if (attr.T.type == Type::INT){
-        if (op == "++") {
-            result.V.val.IntVal = attr.V.val.IntVal++;
-        } else if (op == "--") {
-            result.V.val.IntVal = attr.V.val.IntVal--;
+        if (op == "+") {
+            result.V.val.IntVal = attr.V.val.IntVal;
+        } else if (op == "-") {
+            result.V.val.IntVal = attr.V.val.IntVal * -1;
         } else if (op == "!") {
             attr = TypeConvert(attr, Type::BOOL);
             result.V.val.BoolVal = !attr.V.val.BoolVal;
         }
+        else{
+            error_msgs.push_back("Invalid operator '" + op + "' at line " + std::to_string(line_number) + "\n");
+        }
     }
-    else if (commonType == Type::FLOAT){
-        if (op == "++") {
-            result.V.val.FloatVal = attr.V.val.FloatVal++;
-        } else if (op == "--") {
-            result.V.val.FloatVal = attr.V.val.FloatVal--;
+    else if (attr.T.type == Type::FLOAT){
+        if (op == "+") {
+            result.V.val.FloatVal = attr.V.val.FloatVal;
+        } else if (op == "-") {
+            result.V.val.FloatVal = attr.V.val.FloatVal * -1.0f;
         } else if (op == "!") {
             attr = TypeConvert(attr, Type::BOOL);
             result.V.val.BoolVal = !attr.V.val.BoolVal;
+        }
+        else{
+            error_msgs.push_back("Invalid operator '" + op + "' at line " + std::to_string(line_number) + "\n");
         }
     }
     return result;
@@ -103,9 +112,9 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
 
     result.T.type = commonType;
     result.V.ConstTag = left.V.ConstTag & right.V.ConstTag;
-    if(result.V.ConstTag){
-        error_msgs.push_back("Not a const " + std::to_string(line_number) + "\n");
-    }
+    // if(result.V.ConstTag){
+    //     error_msgs.push_back("Not a const " + std::to_string(line_number) + "\n");
+    // }
     if (commonType == Type::INT) {
         if (op == "+") {
             result.V.val.IntVal = left.V.val.IntVal + right.V.val.IntVal;
@@ -140,7 +149,7 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
             result.V.val.BoolVal = (left.V.val.IntVal != right.V.val.IntVal);
         }
         else{
-            error_msgs.push_back("Unsupported operator '" + op + "' at line " + std::to_string(line_number) + "\n");
+            error_msgs.push_back("Invalid operator '" + op + "' at line " + std::to_string(line_number) + "\n");
         }
     }
     else if (commonType == Type::FLOAT) {
@@ -420,17 +429,23 @@ void ConstExp::TypeCheck() {
 }
 
 void Lval::TypeCheck() { //变量作为左值使用时的检查
-   // is_left=false;
+    is_left=false;
     VarAttribute val=semant_table.symbol_table.lookup_val(name);
     if (val.type == Type::VOID) {
         if (semant_table.GlobalTable.find(name) != semant_table.GlobalTable.end()) {
+            if(val.type==Type::INT){
+                attribute.V.val.IntVal=val.IntInitVals[0];
+            } else if(val.type==Type::FLOAT){
+                attribute.V.val.FloatVal=val.FloatInitVals[0];
+            }
             val = semant_table.GlobalTable[name];
             scope = 0;
         } else {
             error_msgs.push_back("Undefined var in line " + std::to_string(line_number) + "\n");
             return;
         }
-    } else {
+    } 
+    else {
         scope = semant_table.symbol_table.lookup_scope(name);
     }
 
@@ -448,23 +463,23 @@ void Lval::TypeCheck() { //变量作为左值使用时的检查
             arrayindexConstTag &= d->attribute.V.ConstTag;  
         }
     }
-     if (arrayindexs.size() == val.dims.size()) {  
+    if (arrayindexs.size() == val.dims.size()) {  
         attribute.V.ConstTag = val.ConstTag & arrayindexConstTag;  
         attribute.T.type = val.type;  
         if (attribute.V.ConstTag) {  
             if (attribute.T.type == Type::INT) {  
                 int idx=0;
                 for (int curIndex = 0; curIndex < arrayindexs.size(); curIndex++) {
-                idx *= val.dims[curIndex];
-                idx += arrayindexs[curIndex];
-              }
+                    idx *= val.dims[curIndex];
+                    idx += arrayindexs[curIndex];
+                }
                 attribute.V.val.IntVal = val.IntInitVals[idx];  
             } else if (attribute.T.type == Type::FLOAT) {  
                 int idx=0;
                 for (int curIndex = 0; curIndex < arrayindexs.size(); curIndex++) {
-                idx *= val.dims[curIndex];
-                idx += arrayindexs[curIndex];
-              }
+                    idx *= val.dims[curIndex];
+                    idx += arrayindexs[curIndex];
+                }
                 attribute.V.val.IntVal = val.FloatInitVals[idx];    
             }
         }
@@ -474,7 +489,7 @@ void Lval::TypeCheck() { //变量作为左值使用时的检查
     } else {
         error_msgs.push_back("Array is unmatched in line " + std::to_string(line_number) + "\n");  // 数组不匹配，报错
     }
-    }
+}
 
 void FuncRParams::TypeCheck() {
 

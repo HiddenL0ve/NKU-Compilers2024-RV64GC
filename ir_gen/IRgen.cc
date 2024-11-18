@@ -8,6 +8,10 @@ IRgenTable irgen_table;    // 中间代码生成的辅助变量
 LLVMIR llvmIR;             // 我们需要在这个变量中生成中间代码
 
 void AddLibFunctionDeclare();
+extern int regnumber;
+static FuncDefInstruction now_function;
+static int now_label = 0;
+
 
 // 在基本块B末尾生成一条新指令
 void IRgenArithmeticI32(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int reg1, int reg2, int result_reg);
@@ -62,8 +66,41 @@ RegOperand *GetNewRegOperand(int RegNo);
 // generate TypeConverse Instructions from type_src to type_dst
 // eg. you can use fptosi instruction to converse float to int
 // eg. you can use zext instruction to converse bool to int
-void IRgenTypeConverse(LLVMBlock B, Type::ty type_src, Type::ty type_dst, int src, int dst) {
-    TODO("IRgenTypeConverse. Implement it if you need it");
+void IRgenTypeConverse(LLVMBlock B, Type::ty type_src, Type::ty type_dst, int src, int dst) {//类型转换
+    if(type_dst==type_src)
+    {
+        return;
+    }
+    else if(type_src==Type::INT&&type_dst==Type::FLOAT){
+         regnumber++;
+        IRgenSitofp(B,src,regnumber);
+    }
+    else if(type_src==Type::FLOAT&&type_dst==Type::INT){
+         regnumber++;
+        IRgenFptosi(B,src,regnumber);
+    }
+    else if(type_src==Type::BOOL&&type_dst==Type::INT){
+         regnumber++;
+        IRgenZextI1toI32(B,src,regnumber);
+
+    }
+    else if(type_src==Type::INT&&type_dst==Type::BOOL){
+         regnumber++;
+        IRgenIcmpImmRight(B, BasicInstruction::IcmpCond::ne, src, 0, regnumber);
+    }
+    else if(type_src==Type::FLOAT&&type_dst==Type::BOOL){
+         regnumber++;
+        IRgenFcmpImmRight(B, BasicInstruction::FcmpCond::ONE, src, 0, regnumber);
+
+    }
+    else if(type_src==Type::BOOL&&type_dst==Type::FLOAT){
+        regnumber++;
+        IRgenZextI1toI32(B,src,regnumber);
+        src=regnumber;
+        regnumber++;
+        IRgenSitofp(B,src,regnumber);
+    }
+    //TODO("IRgenTypeConverse. Implement it if you need it");
 }
 
 void BasicBlock::InsertInstruction(int pos, Instruction Ins) {
@@ -85,7 +122,7 @@ void BasicBlock::InsertInstruction(int pos, Instruction Ins) {
     假设mulexp生成完后，我们应该在基本块B0继续插入指令。
     addexp的结果存储在r0寄存器中，mulexp的结果存储在r1寄存器中
     生成一条指令r2 = r0 + r1，并将该指令插入基本块B0末尾。
-    标注后续应该在基本块B0插入指令，当前节点的结果寄存器为r2。
+    标注后续应该在基0插本块B入指令，当前节点的结果寄存器为r2。
     (如果考虑支持浮点数，需要查看语法树节点的类型来判断此时是否需要隐式类型转换)
 */
 
@@ -121,33 +158,70 @@ void __Program::codeIR() {
 
 void Exp::codeIR() { addexp->codeIR(); }
 
-void AddExp_plus::codeIR() { TODO("BinaryExp CodeIR"); }
+void AddExp_plus::codeIR() { 
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+     Binary(addexp,mulexp,op::ADD,BB);
+ }
 
-void AddExp_sub::codeIR() { TODO("BinaryExp CodeIR"); }
+void AddExp_sub::codeIR() { 
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+     Binary(addexp,mulexp,op::SUB,BB);
+ }
 
-void MulExp_mul::codeIR() { TODO("BinaryExp CodeIR"); }
+void MulExp_mul::codeIR() { 
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+     Binary(mulexp,unary_exp,op::MUL,BB);
+ }
 
-void MulExp_div::codeIR() { TODO("BinaryExp CodeIR"); }
+void MulExp_div::codeIR() {  
+    LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+    Binary(mulexp,unary_exp,op::DIV,BB);
+ }
 
-void MulExp_mod::codeIR() { TODO("BinaryExp CodeIR"); }
+void MulExp_mod::codeIR() { 
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+     Binary(mulexp,unary_exp,op::MOD,BB);
+ }
 
-void RelExp_leq::codeIR() { TODO("BinaryExp CodeIR"); }
+void RelExp_leq::codeIR() { 
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+     Binary(relexp,addexp,op::LEQ,BB);
+ }
 
-void RelExp_lt::codeIR() { TODO("BinaryExp CodeIR"); }
+void RelExp_lt::codeIR() { 
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+     Binary(relexp,addexp,op::LT,BB);
+ }
 
-void RelExp_geq::codeIR() { TODO("BinaryExp CodeIR"); }
+void RelExp_geq::codeIR() { 
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+     Binary(relexp,addexp,op::GEQ,BB);
+ }
 
-void RelExp_gt::codeIR() { TODO("BinaryExp CodeIR"); }
+void RelExp_gt::codeIR() { 
+    LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+    Binary(relexp,addexp,op::GT,BB);
+ }
 
-void EqExp_eq::codeIR() { TODO("BinaryExp CodeIR"); }
+void EqExp_eq::codeIR() { 
+    LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+    Binary(eqexp,relexp,op::EQ,BB);
+}
 
-void EqExp_neq::codeIR() { TODO("BinaryExp CodeIR"); }
+void EqExp_neq::codeIR() { 
+    LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+    Binary(eqexp,relexp,op::NE,BB);
+ }
 
 // short circuit &&
-void LAndExp_and::codeIR() { TODO("LAndExpAnd CodeIR"); }
+void LAndExp_and::codeIR() { 
+
+ }
 
 // short circuit ||
-void LOrExp_or::codeIR() { TODO("LOrExpOr CodeIR"); }
+void LOrExp_or::codeIR() { 
+
+ }
 
 void ConstExp::codeIR() { addexp->codeIR(); }
 
@@ -157,11 +231,19 @@ void FuncRParams::codeIR() { TODO("FuncRParams CodeIR"); }
 
 void Func_call::codeIR() { TODO("FunctionCall CodeIR"); }
 
-void UnaryExp_plus::codeIR() { TODO("UnaryExpPlus CodeIR"); }
+void UnaryExp_plus::codeIR() {  
+    LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+    Single(unary_exp,op::ADD,BB); }
 
-void UnaryExp_neg::codeIR() { TODO("UnaryExpNeg CodeIR"); }
+void UnaryExp_neg::codeIR() { 
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+    Single(unary_exp,op::SUB,BB);
+ }
 
-void UnaryExp_not::codeIR() { TODO("UnaryExpNot CodeIR"); }
+void UnaryExp_not::codeIR() {
+     LLVMBlock BB = llvmIR.GetBlock(now_function, now_label);
+    Single(unary_exp,op::NOT,BB);
+ }
 
 void IntConst::codeIR() { TODO("IntConst CodeIR"); }
 
@@ -217,7 +299,60 @@ void __Block::codeIR() { TODO("Block CodeIR"); }
 
 void __FuncFParam::codeIR() { TODO("FunctionFParam CodeIR"); }
 
-void __FuncDef::codeIR() { TODO("FunctionDef CodeIR"); }
+void __FuncDef::codeIR() {
+    irgen_table.symbol_table.enter_scope();
+    BasicInstruction::LLVMType FuncType = TLLvm[return_type];
+    /*now_function*/FuncDefInstruction newFuncDef = new FunctionDefineInstruction(FuncType, name->get_string());
+    
+    // 初始化寄存器和符号表
+    regnumber = -1;
+    irgen_table.RegTable.clear();
+    irgen_table.FormalArrayTable.clear();
+    now_label = 0;
+    max_label = -1;
+    now_function = newFuncDef;
+    function_returntype = return_type;
+    llvmIR.NewFunction(now_function);
+    LLVMBlock B = llvmIR.NewBlock(now_function, max_label);
+    
+    // 处理形参
+    auto formal_vector = *formals;
+    regnumber = formal_vector.size() - 1;
+    for (int i = 0; i < formal_vector.size(); i++) {
+        auto formal = formal_vector[i];
+        VarAttribute val;
+        val.type = formal->type_decl;
+        BasicInstruction::LLVMType lltype = TLLvm[formal->type_decl];
+        // 处理数组形参
+        if (formal->dims != nullptr) {
+            newFuncDef->InsertFormal(BasicInstruction::LLVMType::PTR);
+            for (int d = 1; d < formal->dims->size(); d++) {
+                auto formal_dim = formal->dims->at(d);
+                val.dims.push_back(formal_dim->attribute.V.val.IntVal);
+            }
+
+            irgen_table.FormalArrayTable[i] = 1;
+            irgen_table.symbol_table.add_Symbol(formal->name, i);
+            irgen_table.RegTable[i] = val;
+        }
+        else {
+            newFuncDef->InsertFormal(lltype);
+            IRgenAlloca(B, lltype, ++regnumber);
+            IRgenStore(B, lltype, GetNewRegOperand(i), GetNewRegOperand(regnumber));
+            irgen_table.symbol_table.add_Symbol(formal->name, regnumber);
+            irgen_table.RegTable[regnumber] = val;
+        }
+    }
+    
+    IRgenBRUnCond(B, 1);
+    now_label = max_label;
+    block->codeIR();
+    // 保存当前函数
+    max_reg_map[newFuncDef] = regnumber;
+    max_label_map[newFuncDef] = max_label;
+
+    irgen_table.symbol_table.exit_scope();
+}
 
 void CompUnit_Decl::codeIR() { TODO("CompUnitDecl CodeIR"); }
 
