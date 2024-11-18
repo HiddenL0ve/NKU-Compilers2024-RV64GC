@@ -29,7 +29,10 @@ std::vector<std::string> error_msgs{}; // 将语义错误信息保存到该变�
 
 bool ishasmain=false;
 int hasloop=0;
-
+bool isinfunc=false;
+int returnnumi=1;
+float returnnumf=1.0;
+bool isinreturn=false;
 NodeAttribute TypeConvert(const NodeAttribute attr, Type::ty targetType) {
     NodeAttribute result = attr;
     result.T.type = targetType;
@@ -66,24 +69,37 @@ NodeAttribute SingleOperation(NodeAttribute attr, std::string op, int line_numbe
     if (attr.T.type == Type::BOOL) {
         attr = TypeConvert(attr, Type::INT);
     }
+    // if(result.V.ConstTag){
+    //     error_msgs.push_back("Not a const " + std::to_string(line_number) + "\n");
+    // }
     if (attr.T.type == Type::INT){
-        if (op == "++") {
-            result.V.val.IntVal = attr.V.val.IntVal++;
-        } else if (op == "--") {
-            result.V.val.IntVal = attr.V.val.IntVal--;
+        result.T.type=Type::INT;
+        if (op == "+") {
+            result.V.val.IntVal = attr.V.val.IntVal;
+        } else if (op == "-") {
+            result.V.val.IntVal = attr.V.val.IntVal * -1;
         } else if (op == "!") {
             attr = TypeConvert(attr, Type::BOOL);
+            result.T.type=Type::BOOL;
             result.V.val.BoolVal = !attr.V.val.BoolVal;
         }
+        else{
+            error_msgs.push_back("Invalid operator '" + op + "' at line " + std::to_string(line_number) + "\n");
+        }
     }
-    else if (commonType == Type::FLOAT){
-        if (op == "++") {
-            result.V.val.FloatVal = attr.V.val.FloatVal++;
-        } else if (op == "--") {
-            result.V.val.FloatVal = attr.V.val.FloatVal--;
+    else if (attr.T.type == Type::FLOAT){
+        result.T.type=Type::FLOAT;
+        if (op == "+") {
+            result.V.val.FloatVal = attr.V.val.FloatVal;
+        } else if (op == "-") {
+            result.V.val.FloatVal = attr.V.val.FloatVal * -1.0f;
         } else if (op == "!") {
             attr = TypeConvert(attr, Type::BOOL);
+            result.T.type=Type::BOOL;
             result.V.val.BoolVal = !attr.V.val.BoolVal;
+        }
+        else{
+            error_msgs.push_back("Invalid operator '" + op + "' at line " + std::to_string(line_number) + "\n");
         }
     }
     return result;
@@ -97,15 +113,17 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
     }
     else if (left.T.type == Type::BOOL || right.T.type == Type::BOOL) {
         commonType = Type::INT; 
+    }else if(left.T.type == Type::VOID || right.T.type == Type::VOID){
+        error_msgs.push_back("invalid operators in line " + std::to_string(line_number) + "\n");
     }
 
     ImplicitConvert(left, right, commonType, line_number);
 
     result.T.type = commonType;
     result.V.ConstTag = left.V.ConstTag & right.V.ConstTag;
-    if(result.V.ConstTag){
-        error_msgs.push_back("Not a const " + std::to_string(line_number) + "\n");
-    }
+    // if(result.V.ConstTag){
+    //     error_msgs.push_back("Not a const " + std::to_string(line_number) + "\n");
+    // }
     if (commonType == Type::INT) {
         if (op == "+") {
             result.V.val.IntVal = left.V.val.IntVal + right.V.val.IntVal;
@@ -117,7 +135,7 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
             if(right.V.val.IntVal == 0){
                 error_msgs.push_back("Cannot be zero at line " + std::to_string(line_number) + "\n");
             }
-            result.V.val.IntVal = left.V.val.IntVal / right.V.val.IntVal;
+            else result.V.val.IntVal = left.V.val.IntVal / right.V.val.IntVal;
         } else if(op == "%") {
             result.V.val.IntVal = left.V.val.IntVal % right.V.val.IntVal;
         } else if(op == "<=") {
@@ -138,6 +156,16 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
         } else if(op == "!=") {
             result.T.type = Type::BOOL;
             result.V.val.BoolVal = (left.V.val.IntVal != right.V.val.IntVal);
+        }else if(op == "&&") {
+            result.T.type = Type::BOOL;
+            left = TypeConvert(left, Type::BOOL);
+            right = TypeConvert(left, Type::BOOL);
+            result.V.val.BoolVal = (left.V.val.BoolVal && right.V.val.BoolVal);
+        } else if(op == "||") {
+            result.T.type = Type::BOOL;
+            left = TypeConvert(left, Type::BOOL);
+            right = TypeConvert(left, Type::BOOL);
+            result.V.val.BoolVal = (left.V.val.BoolVal || right.V.val.BoolVal);
         }
         else{
             error_msgs.push_back("Unsupported operator '" + op + "' at line " + std::to_string(line_number) + "\n");
@@ -154,7 +182,7 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
             if(right.V.val.FloatVal == 0.0f){
                 error_msgs.push_back("Cannot be zero at line " + std::to_string(line_number) + "\n");
             }
-            result.V.val.FloatVal = left.V.val.FloatVal / right.V.val.FloatVal;
+            else result.V.val.FloatVal = left.V.val.FloatVal / right.V.val.FloatVal;
         } else if(op == "<=") {
             result.T.type = Type::BOOL;
             result.V.val.BoolVal = (left.V.val.FloatVal <= right.V.val.FloatVal);
@@ -204,7 +232,7 @@ void Arrayinit(InitVal init, VarAttribute &v,int begPos, int dimsIdx){
                 if(p==Type::INT){
                     v.IntInitVals[pos]=i->attribute.V.val.IntVal;
                 }else if(p==Type::FLOAT){//不允许浮点型初始化整型数组
-                    error_msgs.push_back("Floating-point numbers cannot be used to initialize integer arrays. " + std::to_string(init->GetLineNumber()) +
+                    error_msgs.push_back("Floating-point numbers cannot be used to initialize integer arrays. in line " + std::to_string(init->GetLineNumber()) +
                                      "\n");
                 }
             }if(v.type==Type::FLOAT){
@@ -420,11 +448,17 @@ void ConstExp::TypeCheck() {
 }
 
 void Lval::TypeCheck() { //变量作为左值使用时的检查
-   // is_left=false;
+    is_left=false;
     VarAttribute val=semant_table.symbol_table.lookup_val(name);
+    VarAttribute v1=semant_table.symbol_table.lookup_val(name);
     if (val.type == Type::VOID) {
         if (semant_table.GlobalTable.find(name) != semant_table.GlobalTable.end()) {
             val = semant_table.GlobalTable[name];
+            if(val.type==Type::INT){
+            attribute.V.val.IntVal=val.IntInitVals[0];
+            }else if(val.type==Type::FLOAT){
+            attribute.V.val.FloatVal=val.FloatInitVals[0];
+            }
             scope = 0;
         } else {
             error_msgs.push_back("Undefined var in line " + std::to_string(line_number) + "\n");
@@ -451,7 +485,7 @@ void Lval::TypeCheck() { //变量作为左值使用时的检查
      if (arrayindexs.size() == val.dims.size()) {  
         attribute.V.ConstTag = val.ConstTag & arrayindexConstTag;  
         attribute.T.type = val.type;  
-        if (attribute.V.ConstTag) {  
+         if (attribute.V.ConstTag) {  
             if (attribute.T.type == Type::INT) {  
                 int idx=0;
                 for (int curIndex = 0; curIndex < arrayindexs.size(); curIndex++) {
@@ -466,6 +500,16 @@ void Lval::TypeCheck() { //变量作为左值使用时的检查
                 idx += arrayindexs[curIndex];
               }
                 attribute.V.val.IntVal = val.FloatInitVals[idx];    
+            }
+        }else if(v1.type != Type::VOID){
+             //printf("%d",10);
+             //return;
+            if (attribute.T.type == Type::INT) {  
+                VarAttribute v=semant_table.symbol_table.lookup_val(name);
+                attribute.V.val.IntVal=v.IntInitVals[0];
+            } else if (attribute.T.type == Type::FLOAT) {  
+                VarAttribute v=semant_table.symbol_table.lookup_val(name);
+                attribute.V.val.FloatVal=v.FloatInitVals[0];
             }
         }
     } else if (arrayindexs.size() < val.dims.size()) {  
@@ -505,21 +549,33 @@ void Func_call::TypeCheck() {
      }
      FuncDef f=fun->second;
      int f_len=f->formals->size();//实际定义时的参数
+     
      if(f_len!=funcparams_len){
         error_msgs.push_back("Function FuncFParams and FuncRParams are not matched in line " + std::to_string(line_number) + "\n");
      }
     attribute.T.type = semant_table.FunctionTable[name]->return_type;
+    if(f->returniszero==true&&attribute.T.type==Type::INT){
+        attribute.V.val.IntVal=0;
+    }else if(f->returniszero==true&&attribute.T.type==Type::FLOAT){
+        attribute.V.val.FloatVal=0.0;
+    }else if(f->returniszero==false&&attribute.T.type==Type::INT){
+         attribute.V.val.IntVal=1;
+    }else if(f->returniszero==false&&attribute.T.type==Type::FLOAT){
+        attribute.V.val.FloatVal=1.0;
+    }else{
+        attribute.V.val.IntVal=1;
+    }
     attribute.V.ConstTag = false;
  }
 
 void UnaryExp_plus::TypeCheck() {
     unary_exp->TypeCheck();
-    attribute = SingleOperation(unary_exp->attribute, "++", line_number);
+    attribute = SingleOperation(unary_exp->attribute, "+", line_number);
 }
 
 void UnaryExp_neg::TypeCheck() {
     unary_exp->TypeCheck();
-    attribute = SingleOperation(unary_exp->attribute, "--", line_number);
+    attribute = SingleOperation(unary_exp->attribute, "-", line_number);
 }
 
 void UnaryExp_not::TypeCheck() {
@@ -547,12 +603,41 @@ void PrimaryExp_branch::TypeCheck() {
 }
 
 void assign_stmt::TypeCheck() { 
+    //  printf("%d",10);
+    //  return;
     lval->TypeCheck();
     exp->TypeCheck();
-    ((Lval *)lval)->is_left = true;
+    VarAttribute v=semant_table.symbol_table.lookup_val(((Lval *)lval)->get_name());
+    if(v.type!=Type::VOID){
+    if(lval->attribute.T.type==Type::INT){
+        int i=exp->attribute.V.val.IntVal;
+        v.IntInitVals[0]=i;
+        v.type=Type::INT;
+    }else if(lval->attribute.T.type==Type::FLOAT){
+        float f=exp->attribute.V.val.FloatVal;
+        v.FloatInitVals[0]=f;
+        v.type=Type::FLOAT;
+    }
+    semant_table.symbol_table.add_Symbol(((Lval *)lval)->get_name(),v);
+   
+    }else{
+        VarAttribute val=semant_table.GlobalTable[((Lval *)lval)->get_name()];
+        if(lval->attribute.T.type==Type::INT){
+        int i=exp->attribute.V.val.IntVal;
+        val.IntInitVals[0]=i;
+        val.type=Type::INT;
+        }else if(lval->attribute.T.type==Type::FLOAT){
+        float f=exp->attribute.V.val.FloatVal;
+        val.FloatInitVals[0]=f;
+        val.type=Type::FLOAT;
+       }
+       semant_table.GlobalTable[((Lval *)lval)->get_name()]=val;
+    }
+     ((Lval *)lval)->is_left = true;
     if (exp->attribute.T.type == Type::VOID) {
         error_msgs.push_back("void type can not be assign_stmt's expression " + std::to_string(line_number) + "\n");
-    } }
+    } 
+}
 
 void expr_stmt::TypeCheck() {
     exp->TypeCheck();
@@ -564,7 +649,7 @@ void block_stmt::TypeCheck() { b->TypeCheck(); }
 void ifelse_stmt::TypeCheck() {
     Cond->TypeCheck();
     if (Cond->attribute.T.type == Type::VOID) {
-        error_msgs.push_back("if cond type is invalid " + std::to_string(line_number) + "\n");
+        error_msgs.push_back("if cond type is invalid in line " + std::to_string(line_number) + "\n");
     }
     ifstmt->TypeCheck();
     elsestmt->TypeCheck();
@@ -573,22 +658,19 @@ void ifelse_stmt::TypeCheck() {
 void if_stmt::TypeCheck() {
     Cond->TypeCheck();
     if (Cond->attribute.T.type == Type::VOID) {
-        error_msgs.push_back("if cond type is invalid " + std::to_string(line_number) + "\n");
+        error_msgs.push_back("if cond type is invalid in line " + std::to_string(line_number) + "\n");
     }
     ifstmt->TypeCheck();
 }
 
-
-
-
 void while_stmt::TypeCheck() { 
     Cond->TypeCheck();
+    if(Cond->attribute.T.type==Type::VOID){
+         error_msgs.push_back("while cond type is invalid in line " + std::to_string(line_number) + "\n");
+    }
     hasloop++;
     body->TypeCheck();
     hasloop--;
-    if(Cond->attribute.T.type==Type::VOID){
-         error_msgs.push_back("while cond type is invalid " + std::to_string(line_number) + "\n");
-    }
  }
 
 void continue_stmt::TypeCheck() {  
@@ -602,7 +684,20 @@ void break_stmt::TypeCheck() {
         error_msgs.push_back("break is not in while stmt in line " + std::to_string(line_number) + "\n");
     } }
 
-void return_stmt::TypeCheck() { return_exp->TypeCheck(); }
+void return_stmt::TypeCheck() { 
+    isinreturn=true;
+    return_exp->TypeCheck(); 
+    if(return_exp->attribute.T.type==Type::INT)
+    {returnnumi=return_exp->attribute.V.val.IntVal;}
+    else if(return_exp->attribute.T.type==Type::FLOAT)
+    {returnnumf=return_exp->attribute.V.val.FloatVal;}
+    isinreturn=false;
+
+    if (return_exp->attribute.T.type == Type::VOID) {
+        error_msgs.push_back("return type is invalid in line " + std::to_string(line_number) + "\n");
+    }
+    
+    }
 
 void return_stmt_void::TypeCheck() {}
 
@@ -620,9 +715,9 @@ void ConstInitVal_exp::TypeCheck() {
     if (attribute.V.ConstTag==0) {    
         error_msgs.push_back("Expression is not const in line" + std::to_string(line_number) + "\n");
     }
-    if (attribute.T.type == Type::VOID) {
-        error_msgs.push_back("Initval expression can't be void in line " + std::to_string(line_number) + "\n");
-    }
+    // if (attribute.T.type == Type::VOID) {
+    //     error_msgs.push_back("Initval expression can't be void in line " + std::to_string(line_number) + "\n");
+    // }
  }
 
 void VarInitVal::TypeCheck() { 
@@ -638,12 +733,15 @@ void VarInitVal_exp::TypeCheck() {
     exp->TypeCheck();
     attribute = exp->attribute;
 
-    if (attribute.T.type == Type::VOID) {
-        error_msgs.push_back("Initval expression can't be void in line " + std::to_string(line_number) + "\n");
-    }
+    // if (attribute.T.type == Type::VOID) {
+    //     error_msgs.push_back("Initval expression can't be void in line " + std::to_string(line_number) + "\n");
+    // }
  }
 
 void VarDef_no_init::TypeCheck() { 
+    // printf("%d",10);
+    // return ;
+    //  return;
     if(dims!=nullptr){
      auto dim=*dims;
      for(auto d :dim){
@@ -659,6 +757,8 @@ void VarDef_no_init::TypeCheck() {
    } }
 
 void VarDef::TypeCheck() { 
+   // printf("%d",10);
+    //  return;
     if(dims!=nullptr){
      auto dim=*dims;
      for(auto d :dim){
@@ -693,6 +793,8 @@ void ConstDef::TypeCheck() {
    }
 
 void VarDecl::TypeCheck() { //对变量声明时的检查；
+    //  printf("%d",10);
+    //  return;
    std::vector<Def> defs=*var_def_list;
    for(Def def:defs){
    if(semant_table.symbol_table.lookup_scope(def->get_name())==semant_table.symbol_table.get_current_scope()){
@@ -722,6 +824,21 @@ void VarDecl::TypeCheck() { //对变量声明时的检查；
     InitVal init = def->get_init();
         if (init != nullptr) {
             init->TypeCheck();
+            if(type_decl==Type::INT){
+                
+               initintconst(init,v);
+               
+            }else if(type_decl==Type::FLOAT){
+              initfloatconst(init,v);
+            }
+        }else{
+            if(type_decl==Type::INT){
+                 v.IntInitVals.resize(1, 0);
+                 v.IntInitVals[0]=0;
+            }else if(type_decl==Type::FLOAT){
+                 v.IntInitVals.resize(1, 0);
+                v.FloatInitVals[0]=0;
+            }
         }
     semant_table.symbol_table.add_Symbol(def->get_name(), v);
    }
@@ -821,9 +938,13 @@ void __FuncFParam::TypeCheck() {
 }
 
 void __FuncDef::TypeCheck() {
+    returnnumf=1.0;
+    returnnumi=1;
     semant_table.symbol_table.enter_scope();
 
     semant_table.FunctionTable[name] = this;
+     //printf("%d",10);
+     //return ;
     if(name->get_string()=="main"){
         ishasmain=true;
     }
@@ -833,20 +954,37 @@ void __FuncDef::TypeCheck() {
     }
 
     // block TypeCheck
+    isinfunc=true;
     if (block != nullptr) {
         auto item_vector = *(block->item_list);
         for (auto item : item_vector) {
+            // printf("%d",10);
+            // return;
             item->TypeCheck();
         }
     }
+    if(returnnumi==0&&return_type==Type::INT){
+        this->returniszero=true;
+        semant_table.FunctionTable[name] = this;
+    }else if(returnnumf==0.0&&return_type==Type::INT){
+         this->returniszero=true;
+        semant_table.FunctionTable[name] = this;
+    }
 
+    isinfunc=false;
     semant_table.symbol_table.exit_scope();
 }
 
 std::map<std::string, VarAttribute> ConstGlobalMap;
 std::map<std::string, VarAttribute> StaticGlobalMap;    
-BasicInstruction::LLVMType Type2LLvm[6] = {BasicInstruction::LLVMType::VOID, BasicInstruction::LLVMType::I32, BasicInstruction::LLVMType::FLOAT32,
-                         BasicInstruction::LLVMType::I1,   BasicInstruction::LLVMType::PTR, BasicInstruction::LLVMType::DOUBLE};
+BasicInstruction::LLVMType Type2LLvm[6] = {
+    BasicInstruction::LLVMType::VOID, 
+    BasicInstruction::LLVMType::I32, 
+    BasicInstruction::LLVMType::FLOAT32,
+    BasicInstruction::LLVMType::I1,
+    BasicInstruction::LLVMType::PTR,
+    BasicInstruction::LLVMType::DOUBLE
+};
 
 void CompUnit_Decl::TypeCheck() {     
     Type::ty type_decl = decl->GetTypedecl();
@@ -885,6 +1023,14 @@ void CompUnit_Decl::TypeCheck() {
             } else if (type_decl == Type::FLOAT) {
                 initfloatconst(init, val);
              }
+        }else {
+             if(type_decl==Type::INT){
+                 val.IntInitVals.resize(1, 0);
+                 val.IntInitVals[0]=0;
+            }else if(type_decl==Type::FLOAT){
+                 val.IntInitVals.resize(1, 0);
+                 val.FloatInitVals[0]=0.0;
+            }
         }
 
         if (def->IsConst()) {

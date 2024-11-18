@@ -1,4 +1,2 @@
-Multiple definitions of variable in line 4
-
-previous declaration of 'a' was in line8
+if cond type is invalid in line 12
 

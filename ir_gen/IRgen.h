@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 
+int regnumber=0;
 class IRgenTable {
 public:
     // 如果你无从下手,推荐先阅读LLVMIR类的printIR函数,了解我们是如何输出中间代码的
@@ -17,7 +18,10 @@ public:
 
     // TODO():添加更多你需要的成员变量和成员函数
     SymbolRegTable symbol_table;
+    std::map<int, int> FormalArrayTable;
+    std::map<int,VarAttribute> RegTable;
     IRgenTable() {}
 };
 
 #endif
+

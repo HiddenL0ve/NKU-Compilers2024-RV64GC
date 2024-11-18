@@ -16,6 +16,8 @@
 // exp basic_class
 class __Expression : public tree_node {
 public:
+    int true_label = -1;
+    int false_label = -1;
 };
 typedef __Expression *Expression;
 
@@ -191,11 +193,12 @@ public:
     std::vector<Expression> *dims;
     bool is_left = true;
     // 如果dims为nullptr, 表示该变量不含数组下标, 你也可以通过其他方式判断，但需要修改SysY_parser.y已有的代码
-
+    Operand ptr; 
     int scope = -1;    // 在语义分析阶段填入正确的作用域
     Lval(Symbol n, std::vector<Expression> *d) : name(n), dims(d) {}
     void codeIR();
     void TypeCheck();
+    Symbol get_name(){ return name;}
     void printAST(std::ostream &s, long long int pad);
 };
 
@@ -640,11 +643,13 @@ public:
     Symbol name;
     std::vector<FuncFParam> *formals;
     Block block;
+    bool returniszero;
     __FuncDef(Type::ty t, Symbol functionName, std::vector<FuncFParam> *f, Block b) {
         formals = f;
         name = functionName;
         return_type = t;
         block = b;
+        returniszero=false;
     }
     void codeIR();
     void TypeCheck();

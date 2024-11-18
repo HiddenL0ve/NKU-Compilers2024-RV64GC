@@ -51,6 +51,7 @@ public:
     int line_number = -1;
     Type T;
     ConstValue V;
+    // Varvalue value;
     std::string GetAttributeInfo();
 };
 

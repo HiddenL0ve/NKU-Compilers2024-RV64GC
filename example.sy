@@ -1,0 +1,13 @@
+int a;
+int b;
+int c;
+int d;
+int e;
+void f(){
+	return 1.0;
+}
+int main()
+{
+	const int a=f();
+	return 0;
+}
