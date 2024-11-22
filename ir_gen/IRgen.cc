@@ -564,15 +564,15 @@ void Lval::codeIR() {
 */
 
 //下述代码相当于对a[1][2]的处理
-    auto lltype=TLLvm[lval_attribute.type];
+    auto lltype=TLLvm[lval_attribute.type];//左值类型
     if(indexs.empty()==false||attribute.T.type==Type::PTR){//对于数组
         if(!formal_array_tag){//非函数参数
              indexs.insert(indexs.begin(),new ImmI32Operand(0));
         }
         if(lltype==BasicInstruction::LLVMType::I32)
             IRgenGetElementptrIndexI32(b,lltype,++regnumber,ptr_operand,lval_attribute.dims,indexs);
-        else if(lltype==BasicInstruction::LLVMType::I64){
-            IRgenGetElementptrIndexI64(b,lltype,++regnumber,ptr_operand,lval_attribute.dims,indexs);
+        else if(lltype==BasicInstruction::LLVMType::FLOAT32){
+            IRgenGetElementptrIndexI32(b,lltype,++regnumber,ptr_operand,lval_attribute.dims,indexs);
         }
         ptr_operand=GetNewRegOperand(regnumber);
     }
@@ -887,19 +887,6 @@ std::vector<int> GetIndexes(std::vector<int> dims, int absoluteIndex) {
     return ret;
 }
 
-int FindMinDimStepIR(const std::vector<int> dims, int relativePos, int dimsIdx, int &max_subBlock_sz) {
-    int min_dim_step = 1;
-    int blockSz = 1;
-    for (int i = dimsIdx + 1; i < dims.size(); i++) {
-        blockSz *= dims[i];
-    }
-    while (relativePos % blockSz != 0) {
-        min_dim_step++;
-        blockSz /= dims[dimsIdx + min_dim_step - 1];
-    }
-    max_subBlock_sz = blockSz;
-    return min_dim_step;
-}
 void RecursiveArrayInitIR(LLVMBlock block, const std::vector<int> dims, int arrayaddr_reg_no, InitVal init,
                           int beginPos, int endPos, int dimsIdx, Type::ty ArrayType)
  {
@@ -926,13 +913,7 @@ void RecursiveArrayInitIR(LLVMBlock block, const std::vector<int> dims, int arra
             // store i32 %init_val_reg,ptr %addr_reg
             IRgenStore(block, TLLvm[ArrayType], GetNewRegOperand(init_val_reg), GetNewRegOperand(addr_reg));
             pos++;
-        } else {
-            int max_subBlock_sz = 0;
-            int min_dim_step = FindMinDimStepIR(dims, pos - beginPos, dimsIdx, max_subBlock_sz);
-            RecursiveArrayInitIR(block, dims, arrayaddr_reg_no, iv, pos, pos + max_subBlock_sz - 1,
-                                 dimsIdx + min_dim_step, ArrayType);
-            pos += max_subBlock_sz;
-        }
+        } 
     }
 }
 
@@ -942,116 +923,109 @@ void RecursiveArrayInitIR(LLVMBlock block, const std::vector<int> dims, int arra
     store i32 1, i32* %a
 */
 void VarDecl::codeIR() { 
-    LLVMBlock B = llvmIR.GetBlock(now_function, 0);
-    LLVMBlock InitB = llvmIR.GetBlock(now_function, now_label);
-    auto def_vector = *var_def_list;
-    for (auto def : def_vector) {
-
-        VarAttribute val;
-        val.type = type_decl;    // init val.type
-        irgen_table.symbol_table.add_Symbol(def->get_name(), ++regnumber);
-        int alloca_reg = regnumber;
-        if (def->get_dims() != nullptr) {    // this var is array
-            auto dim_vector = *def->get_dims();
-            for (auto d : dim_vector) {    // init val.dims
-                val.dims.push_back(d->attribute.V.val.IntVal);
-            }
-            IRgenAllocaArray(B, TLLvm[type_decl], alloca_reg, val.dims);
-            irgen_table.RegTable[alloca_reg] = val;
-
-            InitVal init = def->get_init();
-            if (init != nullptr) {
-                int array_sz = 1;
-                for (auto d : val.dims) {
-                    array_sz *= d;
-                }
-
-                CallInstruction *memsetCall = new CallInstruction(BasicInstruction::LLVMType::VOID, nullptr, std::string("llvm.memset.p0.i32"));
-                memsetCall->push_back_Parameter(BasicInstruction::LLVMType::PTR, GetNewRegOperand(alloca_reg));    // array address
-                memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I8, new ImmI32Operand(0));
-                memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I32, new ImmI32Operand(array_sz * sizeof(int)));
-                memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I1, new ImmI32Operand(0));
-                llvmIR.function_block_map[now_function][now_label]->InsertInstruction(1, memsetCall);
-                // recursive_Array_Init_IR
-                RecursiveArrayInitIR(InitB, val.dims, alloca_reg, init, 0, array_sz - 1, 0, type_decl);
-            }
-        } else {    // this var is not array
-             IRgenAlloca(B, TLLvm[type_decl], alloca_reg);
-            irgen_table.RegTable[alloca_reg] = val;
-
+   LLVMBlock B=llvmIR.GetBlock(now_function,0);
+   LLVMBlock initB=llvmIR.GetBlock(now_function,now_label);
+   auto def_vector=*var_def_list;
+   for(auto def:def_vector){
+      VarAttribute val;
+      val.type=type_decl;
+      irgen_table.symbol_table.add_Symbol(def->get_name(),++regnumber);
+      int alloca_reg=regnumber;
+      if(def->get_dims()==nullptr){
+            IRgenAlloca(B,TLLvm[type_decl],alloca_reg);
+            irgen_table.RegTable[alloca_reg]=val;
             Operand val_operand;
-
-            InitVal init = def->get_init();
-            if (init != nullptr) {
+            InitVal init=def->get_init();
+            if(init==nullptr){
+                  if(type_decl==Type::INT){
+                    IRgenArithmeticI32ImmAll(initB,BasicInstruction::LLVMIROpcode::ADD,0,0,++regnumber);
+                   val_operand=GetNewRegOperand(regnumber);
+                  }else if (type_decl == Type::FLOAT) {
+                    IRgenArithmeticF32ImmAll(initB, BasicInstruction::LLVMIROpcode::FADD, 0, 0, ++regnumber);
+                    val_operand = GetNewRegOperand(regnumber);
+                }//对于未初始化的变量将其初始化为0
+            }else{
                 Expression initExp = init->GetExp();
                 initExp->codeIR();
-                IRgenTypeConverse(InitB, initExp->attribute.T.type, type_decl, regnumber);
+                IRgenTypeConverse(initB, initExp->attribute.T.type, type_decl,regnumber);
                 val_operand = GetNewRegOperand(regnumber);
-            } else {    // we consume that no init will be 0 by default
-                if (type_decl == Type::INT) {
-                    IRgenArithmeticI32ImmAll(InitB, BasicInstruction::LLVMIROpcode::ADD, 0, 0, ++regnumber);
-                    val_operand = GetNewRegOperand(regnumber);
-                } else if (type_decl == Type::FLOAT) {
-                    IRgenArithmeticF32ImmAll(InitB, BasicInstruction::LLVMIROpcode::FADD, 0, 0, ++regnumber);
-                    val_operand = GetNewRegOperand(regnumber);
-                }
-             }
-            // store the value
-            IRgenStore(InitB, TLLvm[type_decl], val_operand, GetNewRegOperand(alloca_reg));
-        }
-    }
+            }
+        IRgenStore(initB, TLLvm[type_decl], val_operand, GetNewRegOperand(alloca_reg));
+      }else{
+         auto dim_vector=*def->get_dims();
+          for (auto d : dim_vector) {   
+                val.dims.push_back(d->attribute.V.val.IntVal);
+         }
+          IRgenAllocaArray(B, TLLvm[type_decl], alloca_reg, val.dims);
+          irgen_table.RegTable[alloca_reg]=val;
+          InitVal init=def->get_init();
+          if(init!=nullptr){
+            int size=1;
+            for(auto d:val.dims){
+                size*=d;
+            }
+             CallInstruction *memsetCall = new CallInstruction(BasicInstruction::LLVMType::VOID, nullptr, std::string("llvm.memset.p0.i32"));
+             memsetCall->push_back_Parameter(BasicInstruction::LLVMType::PTR, GetNewRegOperand(alloca_reg));    // array address
+             memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I8, new ImmI32Operand(0));
+             memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I32, new ImmI32Operand(size * sizeof(int)));
+             memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I1, new ImmI32Operand(0));
+             llvmIR.function_block_map[now_function][now_label]->InsertInstruction(1, memsetCall);
+                // recursive_Array_Init_IR
+             RecursiveArrayInitIR(initB, val.dims, alloca_reg, init, 0, size - 1, 0, type_decl);
+
+          }
+      }
+
+   }
  }
 
 void ConstDecl::codeIR() { 
 
-    LLVMBlock B = llvmIR.GetBlock(now_function, 0);
-    LLVMBlock InitB = llvmIR.GetBlock(now_function, now_label);
-    auto def_vector = *var_def_list;
-    for (auto def : def_vector) {
-        VarAttribute val;
-        val.type = type_decl;    // init val.type
-        irgen_table.symbol_table.add_Symbol(def->get_name(), ++regnumber);
-        int alloca_reg = regnumber;
-        if (def->get_dims() != nullptr) {    // this var is array
-            auto dim_vector = *def->get_dims();
-            for (auto d : dim_vector) {    // init val.dims
+    LLVMBlock B=llvmIR.GetBlock(now_function,0);
+   LLVMBlock initB=llvmIR.GetBlock(now_function,now_label);
+   auto def_vector=*var_def_list;
+   for(auto def:def_vector){
+      VarAttribute val;
+      val.type=type_decl;
+      irgen_table.symbol_table.add_Symbol(def->get_name(),++regnumber);
+      int alloca_reg=regnumber;
+      if(def->get_dims()==nullptr){
+            IRgenAlloca(B,TLLvm[type_decl],alloca_reg);
+            irgen_table.RegTable[alloca_reg]=val;
+            Operand val_operand;
+            InitVal init=def->get_init();
+                assert(init != nullptr);
+                Expression initExp = init->GetExp();
+                initExp->codeIR();
+                IRgenTypeConverse(initB, initExp->attribute.T.type, type_decl,regnumber);
+                val_operand = GetNewRegOperand(regnumber);
+          IRgenStore(initB, TLLvm[type_decl], val_operand, GetNewRegOperand(alloca_reg));
+      }else{
+         auto dim_vector=*def->get_dims();
+          for (auto d : dim_vector) {   
                 val.dims.push_back(d->attribute.V.val.IntVal);
-            }
-            IRgenAllocaArray(B, TLLvm[type_decl], alloca_reg, val.dims);
-            irgen_table.RegTable[alloca_reg] = val;
-
-            InitVal init = def->get_init();
-
-            if (init != nullptr) {
+         }
+          IRgenAllocaArray(B, TLLvm[type_decl], alloca_reg, val.dims);
+          irgen_table.RegTable[alloca_reg]=val;
+          InitVal init=def->get_init();
+           if (init != nullptr) {
                 int array_sz = 1;
                 for (auto d : val.dims) {
                     array_sz *= d;
                 }
 
-                CallInstruction *memsetCall = new CallInstruction(BasicInstruction::LLVMType::VOID, nullptr, std::string("llvm.memset.p0.i32"));
-                memsetCall->push_back_Parameter(BasicInstruction::LLVMType::PTR, GetNewRegOperand(alloca_reg));    // array address
-                memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I8, new ImmI32Operand(0));
-                memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I32, new ImmI32Operand(array_sz * sizeof(int)));
-                memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I1, new ImmI32Operand(0));
+            CallInstruction *memsetCall = new CallInstruction(BasicInstruction::LLVMType::VOID, nullptr, std::string("llvm.memset.p0.i32"));
+             memsetCall->push_back_Parameter(BasicInstruction::LLVMType::PTR, GetNewRegOperand(alloca_reg));    // array address
+             memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I8, new ImmI32Operand(0));
+             memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I32, new ImmI32Operand(array_sz * sizeof(int)));
+             memsetCall->push_back_Parameter(BasicInstruction::LLVMType::I1, new ImmI32Operand(0));
                 llvmIR.function_block_map[now_function][now_label]->InsertInstruction(1, memsetCall);
                 // recursive_Array_Init_IR
-                RecursiveArrayInitIR(InitB, val.dims, alloca_reg, init, 0, array_sz - 1, 0, type_decl);
+                RecursiveArrayInitIR(initB, val.dims, alloca_reg, init, 0, array_sz - 1, 0, type_decl);
             }
-        } else {    // this var is not array
-            IRgenAlloca(B, TLLvm[type_decl], alloca_reg);
-            irgen_table.RegTable[alloca_reg] = val;
-            Operand val_operand;
-            InitVal init = def->get_init();
+      }
 
-            assert(init != nullptr);
-            Expression initExp = init->GetExp();
-            initExp->codeIR();
-            IRgenTypeConverse(InitB, initExp->attribute.T.type, type_decl, regnumber);
-            val_operand = GetNewRegOperand(regnumber);
-
-            IRgenStore(InitB, TLLvm[type_decl], val_operand, GetNewRegOperand(alloca_reg));
-        }
-    }
+   }
  }
 
 void BlockItem_Decl::codeIR() { decl->codeIR(); }

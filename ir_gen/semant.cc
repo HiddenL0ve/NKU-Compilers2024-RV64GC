@@ -34,6 +34,8 @@ int returnnumi=1;
 float returnnumf=1.0;
 bool isinreturn=false;
 bool iscond=false;
+int initnum=1;
+float initnumf=1.0;
 NodeAttribute TypeConvert(const NodeAttribute attr, Type::ty targetType) {
     NodeAttribute result = attr;
     result.T.type = targetType;
@@ -140,7 +142,13 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
             }
             else result.V.val.IntVal = left.V.val.IntVal / right.V.val.IntVal;
         } else if(op == "%") {
-            result.V.val.IntVal = left.V.val.IntVal % right.V.val.IntVal;
+            if(right.V.val.IntVal == 0){
+                error_msgs.push_back("Cannot be zero at line " + std::to_string(line_number) + "\n");
+            }
+            else {result.V.val.IntVal = left.V.val.IntVal % right.V.val.IntVal;
+                 //printf("%d",result.V.val.IntVal);
+                 }
+
         } else if(op == "<=") {
             result.T.type = Type::BOOL;
             result.V.val.BoolVal = (left.V.val.IntVal <= right.V.val.IntVal);
@@ -626,13 +634,26 @@ void assign_stmt::TypeCheck() {
     VarAttribute v=semant_table.symbol_table.lookup_val(((Lval *)lval)->get_name());
     if(v.type!=Type::VOID){
     if(lval->attribute.T.type==Type::INT){
+        if(exp->attribute.T.type==Type::INT)
+        {
         int i=exp->attribute.V.val.IntVal;
         v.IntInitVals[0]=i;
         v.type=Type::INT;
+        }else if(exp->attribute.T.type==Type::FLOAT){
+           int i=exp->attribute.V.val.FloatVal;
+           v.IntInitVals[0]=i;
+           v.type=Type::INT;
+        }
     }else if(lval->attribute.T.type==Type::FLOAT){
+        if(exp->attribute.T.type==Type::FLOAT){
         float f=exp->attribute.V.val.FloatVal;
         v.FloatInitVals[0]=f;
         v.type=Type::FLOAT;
+        }else if(exp->attribute.T.type==Type::INT){
+            float f=exp->attribute.V.val.FloatVal;
+            v.FloatInitVals[0]=f;
+            v.type=Type::FLOAT;
+        }
     }
     semant_table.symbol_table.add_Symbol(((Lval *)lval)->get_name(),v);
    
@@ -860,8 +881,8 @@ void VarDecl::TypeCheck() { //对变量声明时的检查；
                  v.IntInitVals.resize(1, 0);
                  v.IntInitVals[0]=0;
             }else if(type_decl==Type::FLOAT){
-                 v.IntInitVals.resize(1, 0);
-                v.FloatInitVals[0]=0;
+                 v.FloatInitVals.resize(1, 1.0);
+                 v.FloatInitVals[0]=1.0;
             }
         }
     semant_table.symbol_table.add_Symbol(def->get_name(), v);
@@ -951,16 +972,18 @@ void __FuncFParam::TypeCheck() {
     } else {
         attribute.T.type = type_decl;
     }
-
     if (name != nullptr) {
         if (semant_table.symbol_table.lookup_scope(name) != -1) {
             error_msgs.push_back("multiple difinitions of formals in function " + name->get_string() + " in line " +
                                  std::to_string(line_number) + "\n");
         }
-        if(val.type == Type::INT){
-            val.IntInitVals.resize(1, 1);
-        } else if(val.type == Type::FLOAT){
-            val.FloatInitVals.resize(1,1.0f);
+        if(type_decl==Type::INT){
+                 val.IntInitVals.resize(1, 1);
+                 val.IntInitVals[0]=initnum++;;
+        }else if(type_decl==Type::FLOAT){
+                 val.FloatInitVals.resize(1, 1.0);
+                 val.FloatInitVals[0]=initnumf;
+                 initnumf+=1.0;
         }
         semant_table.symbol_table.add_Symbol(name, val);
     }
@@ -1065,7 +1088,7 @@ void CompUnit_Decl::TypeCheck() {
                  val.IntInitVals.resize(1, 0);
                  val.IntInitVals[0]=0;
             }else if(type_decl==Type::FLOAT){
-                 val.IntInitVals.resize(1, 0);
+                 val.FloatInitVals.resize(1, 0);
                  val.FloatInitVals[0]=0.0;
             }
         }
@@ -1085,8 +1108,7 @@ void CompUnit_Decl::TypeCheck() {
         } else if (init == nullptr) {
             globalDecl = new GlobalVarDefineInstruction(def->get_name()->get_string(), lltype, nullptr);
         } else if (lltype == BasicInstruction::LLVMType::I32) {
-            globalDecl =
-            new GlobalVarDefineInstruction(def->get_name()->get_string(), lltype, new ImmI32Operand(val.IntInitVals[0]));
+            globalDecl =new GlobalVarDefineInstruction(def->get_name()->get_string(), lltype, new ImmI32Operand(val.IntInitVals[0]));
         } else if (lltype == BasicInstruction::LLVMType::FLOAT32) {
             globalDecl = new GlobalVarDefineInstruction(def->get_name()->get_string(), lltype,
                                                         new ImmF32Operand(val.FloatInitVals[0]));
