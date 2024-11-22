@@ -221,8 +221,8 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
     return result;
 }
 
-void Arrayinit(InitVal init, VarAttribute &v, int begPos, int dimsIdx) {
-    int pos = begPos;
+void Arrayintinit(InitVal init, VarAttribute &v) {    // 数组类型为整型
+    int pos = 0;
     for (InitVal i : *(init->GetList())) {
         if (i->IsExp()) {                   // 初始化中为{3，4}这种情况
             int p = i->attribute.T.type;    // 初始化列表的类型
@@ -230,52 +230,41 @@ void Arrayinit(InitVal init, VarAttribute &v, int begPos, int dimsIdx) {
                 error_msgs.push_back("exp can not be void in initval in line " + std::to_string(init->GetLineNumber()) +
                                      "\n");
             }
-            if (v.type == Type::INT) {    // 数组类型为整型
-                if (p == Type::INT) {
-                    v.IntInitVals[pos] = i->attribute.V.val.IntVal;
-                } else if (p == Type::FLOAT) {    // 不允许浮点型初始化整型数组
-                    error_msgs.push_back(
-                    "Floating-point numbers cannot be used to initialize integer arrays. in line " +
-                    std::to_string(init->GetLineNumber()) + "\n");
-                }
-            }
-            if (v.type == Type::FLOAT) {
-                if (p == Type::INT) {
-                    v.FloatInitVals[pos] = i->attribute.V.val.IntVal;
-                } else if (p == Type::FLOAT) {
-                    v.FloatInitVals[pos] = i->attribute.V.val.FloatVal;
-                }
+            if (p == Type::INT) {
+                v.IntInitVals[pos] = i->attribute.V.val.IntVal;
+            } else if (p == Type::FLOAT) {    // 不允许浮点型初始化整型数组
+                error_msgs.push_back("Floating-point numbers cannot be used to initialize integer arrays. in line " +
+                                     std::to_string(init->GetLineNumber()) + "\n");
             }
             pos++;
-        } else {    // 初始化中有{3,4，{4,5}}嵌套的情况
-            int Block_size = 0;
-            int min_dim = 1;
-            for (int j = dimsIdx + 1; j < v.dims.size(); j++) {
-                Block_size *= v.dims[j];
-            }
-            int position = pos - begPos;
-            while (position % Block_size != 0) {
-                Block_size /= v.dims[dimsIdx + min_dim];
-                min_dim++;
-            }
-            Arrayinit(i, v, pos, dimsIdx + min_dim);
-            pos += Block_size;
         }
     }
 }
-
-void initintconst(InitVal init, VarAttribute &v) {
-    int size = 1;
-    for (auto dim : v.dims) {
-        size *= dim;
+void Arrayfloatinit(InitVal init, VarAttribute &v) {
+    int pos = 0;
+    for (InitVal i : *(init->GetList())) {
+        if (i->IsExp()) {                   // 初始化中为{3，4}这种情况
+            int p = i->attribute.T.type;    // 初始化列表的类型
+            if (p == Type::VOID) {
+                error_msgs.push_back("exp can not be void in initval in line " + std::to_string(init->GetLineNumber()) +
+                                     "\n");
+            }
+            if (p == Type::INT) {
+                v.FloatInitVals[pos] = i->attribute.V.val.IntVal;
+            } else if (p == Type::FLOAT) {
+                v.FloatInitVals[pos] = i->attribute.V.val.FloatVal;
+            }
+            pos++;
+        }
     }
-    v.IntInitVals.resize(size, 0);
+}
+void initint(InitVal init, VarAttribute &v) {
+    v.IntInitVals.resize(1, 0);
     if (v.dims.empty()) {    // 非数组常量的初始化处理
         if (init->GetExp() == nullptr) {
             error_msgs.push_back("The initval is invalid in line " + std::to_string(init->GetLineNumber()) + "\n");
             return;
         }    // 非数组初始化只能使用表达式
-
         auto exp = init->GetExp();
         if (exp->attribute.T.type == Type::VOID) {
             error_msgs.push_back("Expression can't be void in initval in line " +
@@ -293,22 +282,22 @@ void initintconst(InitVal init, VarAttribute &v) {
             }
             return;
         } else {
-            Arrayinit(init, v, 0, 0);
+            int size = 1;
+            for (auto dim : v.dims) {
+                size *= dim;
+            }
+            v.IntInitVals.resize(size, 0);
+            Arrayintinit(init, v);
         }
     }
 }
-void initfloatconst(InitVal init, VarAttribute &v) {
-    int size = 1;
-    for (auto dim : v.dims) {
-        size *= dim;
-    }
-    v.FloatInitVals.resize(size, 0);
+void initfloat(InitVal init, VarAttribute &v) {
+    v.FloatInitVals.resize(1, 0);
     if (v.dims.empty()) {    // 非数组常量的初始化处理
         if (init->GetExp() == nullptr) {
             error_msgs.push_back("The initval is invalid in line " + std::to_string(init->GetLineNumber()) + "\n");
             return;
         }    // 非数组初始化只能使用表达式
-
         auto exp = init->GetExp();
         if (exp->attribute.T.type == Type::VOID) {
             error_msgs.push_back("Expression can't be void in initval in line " +
@@ -319,14 +308,17 @@ void initfloatconst(InitVal init, VarAttribute &v) {
             v.FloatInitVals[0] = exp->attribute.V.val.FloatVal;
         }
     } else {    // 常量数组初始化的处理
-        if (init->IsExp() == 1) {
-            if (init->GetExp() != nullptr) {
-                error_msgs.push_back("The initVal of array can't only be a number in line " +
-                                     std::to_string(init->GetLineNumber()) + "\n");
-            }
+        if (init->IsExp() == 1 && init->GetExp() != nullptr) {
+            error_msgs.push_back("The initVal of array can't only be a number in line " +
+                                 std::to_string(init->GetLineNumber()) + "\n");
             return;
         } else {
-            Arrayinit(init, v, 0, 0);
+            int size = 1;
+            for (auto dim : v.dims) {
+                size *= dim;
+            }
+            v.FloatInitVals.resize(size, 0);
+            Arrayfloatinit(init, v);
         }
     }
 }
@@ -343,104 +335,89 @@ void __Program::TypeCheck() {
 
 void Exp::TypeCheck() {
     addexp->TypeCheck();
-
     attribute = addexp->attribute;
 }
 
 void AddExp_plus::TypeCheck() {
     addexp->TypeCheck();
     mulexp->TypeCheck();
-
     attribute = BinaryOperation(addexp->attribute, mulexp->attribute, "+", line_number);
 }
 
 void AddExp_sub::TypeCheck() {
     addexp->TypeCheck();
     mulexp->TypeCheck();
-
     attribute = BinaryOperation(addexp->attribute, mulexp->attribute, "-", line_number);
 }
 
 void MulExp_mul::TypeCheck() {
     mulexp->TypeCheck();
     unary_exp->TypeCheck();
-
     attribute = BinaryOperation(mulexp->attribute, unary_exp->attribute, "*", line_number);
 }
 
 void MulExp_div::TypeCheck() {
     mulexp->TypeCheck();
     unary_exp->TypeCheck();
-
     attribute = BinaryOperation(mulexp->attribute, unary_exp->attribute, "/", line_number);
 }
 
 void MulExp_mod::TypeCheck() {
     mulexp->TypeCheck();
     unary_exp->TypeCheck();
-
     attribute = BinaryOperation(mulexp->attribute, unary_exp->attribute, "%", line_number);
 }
 
 void RelExp_leq::TypeCheck() {
     relexp->TypeCheck();
     addexp->TypeCheck();
-
     attribute = BinaryOperation(relexp->attribute, addexp->attribute, "<=", line_number);
 }
 
 void RelExp_lt::TypeCheck() {
     relexp->TypeCheck();
     addexp->TypeCheck();
-
     attribute = BinaryOperation(relexp->attribute, addexp->attribute, "<", line_number);
 }
 
 void RelExp_geq::TypeCheck() {
     relexp->TypeCheck();
     addexp->TypeCheck();
-
     attribute = BinaryOperation(relexp->attribute, addexp->attribute, ">=", line_number);
 }
 
 void RelExp_gt::TypeCheck() {
     relexp->TypeCheck();
     addexp->TypeCheck();
-
     attribute = BinaryOperation(relexp->attribute, addexp->attribute, ">", line_number);
 }
 
 void EqExp_eq::TypeCheck() {
     eqexp->TypeCheck();
     relexp->TypeCheck();
-
     attribute = BinaryOperation(eqexp->attribute, relexp->attribute, "==", line_number);
 }
 
 void EqExp_neq::TypeCheck() {
     eqexp->TypeCheck();
     relexp->TypeCheck();
-
     attribute = BinaryOperation(eqexp->attribute, relexp->attribute, "!=", line_number);
 }
 
 void LAndExp_and::TypeCheck() {
     landexp->TypeCheck();
     eqexp->TypeCheck();
-
     attribute = BinaryOperation(landexp->attribute, eqexp->attribute, "&&", line_number);
 }
 void LOrExp_or::TypeCheck() {
     lorexp->TypeCheck();
     landexp->TypeCheck();
-
     attribute = BinaryOperation(lorexp->attribute, landexp->attribute, "||", line_number);
 }
 
 void ConstExp::TypeCheck() {
     addexp->TypeCheck();
-    attribute = addexp->attribute;
-    if (!attribute.V.ConstTag) {    // addexp is not const
+    if (!addexp->attribute.V.ConstTag) {
         error_msgs.push_back("Expression is not const " + std::to_string(line_number) + "\n");
     }
 }
@@ -449,7 +426,7 @@ void Lval::TypeCheck() {    // 变量作为左值使用时的检查
     is_left = false;
     VarAttribute val = semant_table.symbol_table.lookup_val(name);
     VarAttribute v1 = semant_table.symbol_table.lookup_val(name);
-    if (val.type == Type::VOID) {
+    if (val.type == Type::VOID) {    // 不在局部变量表中，尝试在全局变量表中查找
         if (semant_table.GlobalTable.find(name) != semant_table.GlobalTable.end()) {
             val = semant_table.GlobalTable[name];
             if (val.type == Type::INT) {
@@ -484,7 +461,7 @@ void Lval::TypeCheck() {    // 变量作为左值使用时的检查
             arrayindexConstTag &= d->attribute.V.ConstTag;
         }
     }
-    if (arrayindexs.size() == val.dims.size()) {
+    if (arrayindexs.size() == val.dims.size()) {    // 数组以及局部变量的检查
         attribute.V.ConstTag = val.ConstTag & arrayindexConstTag;
         attribute.T.type = val.type;
         if (attribute.V.ConstTag) {
@@ -492,7 +469,7 @@ void Lval::TypeCheck() {    // 变量作为左值使用时的检查
                 int idx = 0;
                 for (int curIndex = 0; curIndex < arrayindexs.size(); curIndex++) {
                     idx *= val.dims[curIndex];
-                    idx += arrayindexs[curIndex];
+                    idx += arrayindexs[curIndex];    // a[20][10]  a[i][j] ->i*10+j
                 }
                 attribute.V.val.IntVal = val.IntInitVals[idx];
             } else if (attribute.T.type == Type::FLOAT) {
@@ -501,9 +478,9 @@ void Lval::TypeCheck() {    // 变量作为左值使用时的检查
                     idx *= val.dims[curIndex];
                     idx += arrayindexs[curIndex];
                 }
-                attribute.V.val.IntVal = val.FloatInitVals[idx];
+                attribute.V.val.FloatVal = val.FloatInitVals[idx];
             }
-        } else if (v1.type != Type::VOID) {
+        } else if (v1.type != Type::VOID) {    // 对于局部变量
             // printf("%d",10);
             // return;
             if (attribute.T.type == Type::INT) {
@@ -628,6 +605,9 @@ void assign_stmt::TypeCheck() {
                 int i = exp->attribute.V.val.FloatVal;
                 v.IntInitVals[0] = i;
                 v.type = Type::INT;
+            } else if (exp->attribute.T.type == Type::VOID) {
+                error_msgs.push_back("void type can not be assign_stmt's expression " + std::to_string(line_number) +
+                                     "\n");
             }
         } else if (lval->attribute.T.type == Type::FLOAT) {
             if (exp->attribute.T.type == Type::FLOAT) {
@@ -638,27 +618,29 @@ void assign_stmt::TypeCheck() {
                 float f = exp->attribute.V.val.FloatVal;
                 v.FloatInitVals[0] = f;
                 v.type = Type::FLOAT;
+            } else if (exp->attribute.T.type == Type::VOID) {
+                error_msgs.push_back("void type can not be assign_stmt's expression " + std::to_string(line_number) +
+                                     "\n");
             }
         }
         semant_table.symbol_table.add_Symbol(((Lval *)lval)->get_name(), v);
-
     } else {
         VarAttribute val = semant_table.GlobalTable[((Lval *)lval)->get_name()];
         if (lval->attribute.T.type == Type::INT) {
             int i = exp->attribute.V.val.IntVal;
             val.IntInitVals[0] = i;
             val.type = Type::INT;
+            semant_table.GlobalTable[((Lval *)lval)->get_name()] = val;
         } else if (lval->attribute.T.type == Type::FLOAT) {
             float f = exp->attribute.V.val.FloatVal;
             val.FloatInitVals[0] = f;
             val.type = Type::FLOAT;
+            semant_table.GlobalTable[((Lval *)lval)->get_name()] = val;
+        } else if (exp->attribute.T.type == Type::VOID) {
+            error_msgs.push_back("void type can not be assign_stmt's expression " + std::to_string(line_number) + "\n");
         }
-        semant_table.GlobalTable[((Lval *)lval)->get_name()] = val;
     }
     ((Lval *)lval)->is_left = true;
-    if (exp->attribute.T.type == Type::VOID) {
-        error_msgs.push_back("void type can not be assign_stmt's expression " + std::to_string(line_number) + "\n");
-    }
 }
 
 void expr_stmt::TypeCheck() {
@@ -830,14 +812,11 @@ void VarDecl::TypeCheck() {    // 对变量声明时的检查；
     //  return;
     std::vector<Def> defs = *var_def_list;
     for (Def def : defs) {
-        if (semant_table.symbol_table.lookup_scope(def->get_name()) == semant_table.symbol_table.get_current_scope()) {
+        if (semant_table.symbol_table.get_current_scope() == semant_table.symbol_table.lookup_scope(def->get_name())) {
             error_msgs.push_back("previous declaration of '" + def->get_name()->get_string() + "' was in line" +
                                  std::to_string(line_number) + "\n");
         }
-        def->scope = semant_table.symbol_table.get_current_scope();
-
         VarAttribute v;
-
         // 对数组进行检查
         if (def->get_dims() != nullptr) {
             auto dims = *def->get_dims();
@@ -859,11 +838,9 @@ void VarDecl::TypeCheck() {    // 对变量声明时的检查；
         if (init != nullptr) {
             init->TypeCheck();
             if (type_decl == Type::INT) {
-
-                initintconst(init, v);
-
+                initint(init, v);
             } else if (type_decl == Type::FLOAT) {
-                initfloatconst(init, v);
+                initfloat(init, v);
             }
         } else {
             if (type_decl == Type::INT) {
@@ -874,6 +851,7 @@ void VarDecl::TypeCheck() {    // 对变量声明时的检查；
                 v.FloatInitVals[0] = 1.0;
             }
         }
+        def->scope = semant_table.symbol_table.get_current_scope();
         semant_table.symbol_table.add_Symbol(def->get_name(), v);
     }
 }
@@ -910,9 +888,9 @@ void ConstDecl::TypeCheck() {
         if (init != nullptr) {
             init->TypeCheck();
             if (type_decl == Type::INT) {
-                initintconst(init, v);
+                initint(init, v);
             } else if (type_decl == Type::FLOAT) {
-                initfloatconst(init, v);
+                initfloat(init, v);
             }
         }
         semant_table.symbol_table.add_Symbol(def->get_name(), v);
@@ -980,7 +958,7 @@ void __FuncFParam::TypeCheck() {
 }
 
 void __FuncDef::TypeCheck() {
-    returnnumf = 1.0f;
+    returnnumf = 1.0;
     returnnumi = 1;
     semant_table.symbol_table.enter_scope();
 
@@ -1048,11 +1026,12 @@ void CompUnit_Decl::TypeCheck() {
             auto def_list = *def->get_dims();
             for (auto d : def_list) {
                 d->TypeCheck();
-                if (!d->attribute.V.ConstTag) {
-                    error_msgs.push_back("Array Dim must be const expression " + std::to_string(line_number) + "\n");
-                }
+
                 if (d->attribute.T.type == Type::FLOAT) {
                     error_msgs.push_back("Array Dim can not be float in line " + std::to_string(line_number) + "\n");
+                }
+                if (!d->attribute.V.ConstTag) {
+                    error_msgs.push_back("Array Dim must be const expression " + std::to_string(line_number) + "\n");
                 }
             }
             for (auto d : def_list) {
@@ -1064,9 +1043,9 @@ void CompUnit_Decl::TypeCheck() {
         if (init != nullptr) {
             init->TypeCheck();
             if (type_decl == Type::INT) {
-                initintconst(init, val);
+                initint(init, val);
             } else if (type_decl == Type::FLOAT) {
-                initfloatconst(init, val);
+                initfloat(init, val);
             }
         } else {
             if (type_decl == Type::INT) {
@@ -1086,7 +1065,7 @@ void CompUnit_Decl::TypeCheck() {
         semant_table.GlobalTable[def->get_name()] = val;
 
         BasicInstruction::LLVMType lltype = Type2LLvm[type_decl];
-
+        // Reference: https://github.com/yuhuifishash/NKU-Compilers2024-RV64GC.git/ir_gen/semant.cc line 802-814
         Instruction globalDecl;
         if (def->get_dims() != nullptr) {
             globalDecl = new GlobalVarDefineInstruction(def->get_name()->get_string(), lltype, val);
