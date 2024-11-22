@@ -1,13 +1,8 @@
-int a;
-int b;
-int c;
-int d;
-int e;
-int f(){
-	return 2;
-}
-int main()
+int gcd(int m,int n)
 {
-	int a=1/(f()-2);
-	return 0;
+int r = m+n;
+return r;
+}
+int main(){
+    return 0;
 }

@@ -957,12 +957,17 @@ void __FuncFParam::TypeCheck() {
             error_msgs.push_back("multiple difinitions of formals in function " + name->get_string() + " in line " +
                                  std::to_string(line_number) + "\n");
         }
+        if(val.type == Type::INT){
+            val.IntInitVals.resize(1, 1);
+        } else if(val.type == Type::FLOAT){
+            val.FloatInitVals.resize(1,1.0f);
+        }
         semant_table.symbol_table.add_Symbol(name, val);
     }
 }
 
 void __FuncDef::TypeCheck() {
-    returnnumf=1.0;
+    returnnumf=1.0f;
     returnnumi=1;
     semant_table.symbol_table.enter_scope();
 
