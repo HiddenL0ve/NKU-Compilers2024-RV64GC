@@ -301,13 +301,13 @@ FuncFParam
 }
 |INT IDENT'[' ']'{
   std::vector<Expression>* t = new std::vector<Expression>;
-    t->push_back(nullptr);
+    t->push_back(0);
     $$ = new __FuncFParam(Type::INT,$2,t);
     $$->SetLineNumber(line_number);
 }
 |FLOAT IDENT '['  ']' {
     std::vector<Expression>* t = new std::vector<Expression>;
-    t->push_back(nullptr);
+    t->push_back(0);
     $$ = new __FuncFParam(Type::FLOAT,$2,t);
     $$->SetLineNumber(line_number);
 }

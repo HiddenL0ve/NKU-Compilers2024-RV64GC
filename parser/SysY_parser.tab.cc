@@ -1776,7 +1776,7 @@ yyreduce:
 #line 302 "parser/SysY_parser.y"
                  {
   std::vector<Expression>* t = new std::vector<Expression>;
-    t->push_back(nullptr);
+    t->push_back(0);
     (yyval.formal) = new __FuncFParam(Type::INT,(yyvsp[-2].symbol_token),t);
     (yyval.formal)->SetLineNumber(line_number);
 }
@@ -1787,7 +1787,7 @@ yyreduce:
 #line 308 "parser/SysY_parser.y"
                       {
     std::vector<Expression>* t = new std::vector<Expression>;
-    t->push_back(nullptr);
+    t->push_back(0);
     (yyval.formal) = new __FuncFParam(Type::FLOAT,(yyvsp[-2].symbol_token),t);
     (yyval.formal)->SetLineNumber(line_number);
 }
