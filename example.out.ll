@@ -15,23 +15,19 @@ declare i32 @llvm.umax.i32(i32,i32)
 declare i32 @llvm.umin.i32(i32,i32)
 declare i32 @llvm.smax.i32(i32,i32)
 declare i32 @llvm.smin.i32(i32,i32)
-define i32 @f(i32 %r0,i32 %r1)
-{
-L0:  ;
-    %r3 = alloca i32
-    %r2 = alloca i32
-    store i32 %r0, ptr %r2
-    store i32 %r1, ptr %r3
-    br label %L1
-L1:  ;
-    %r4 = add i32 1,0
-    ret i32 %r4
-}
 define i32 @main()
 {
 L0:  ;
     br label %L1
 L1:  ;
-    %r0 = add i32 0,0
-    ret i32 %r0
+    %r1 = add i32 5,0
+    store i32 %r1, ptr %r0
+    %r2 = load i32, ptr %r0
+    %r3 = add i32 114509,0
+    %r4 = add i32 %r2,%r3
+    call void @putint(i32 %r4)
+    %r5 = add i32 10,0
+    call void @putch(i32 %r5)
+    %r6 = add i32 0,0
+    ret i32 %r6
 }

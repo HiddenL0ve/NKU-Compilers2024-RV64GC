@@ -1,70 +1,88 @@
-## 1 
-```c
-void Lval::codeIR() { 
-    LLVMBlock b=llvmIR.GetBlock(now_function,now_label);
-    std::vector<Operand> indexs;//使用时用到的数组维度 例如：定义了 a[10][20]但此时使用为a[3][5]此时将会把3、5转换为对应的索引
-    if(dims!=nullptr){
-        for(auto d:*dims){
-            d->codeIR();
-            IRgenTypeConverse(b,d->attribute.T.type,Type::INT,regnumber);
-            indexs.push_back(GetNewRegOperand(regnumber));//真实使用的时候用到的数组的偏移
-        }
-    }
-    
-    Operand ptr_operand;
-    VarAttribute lval_attribute;
-    bool formal_array_tag=false;
-    int alloca_reg=irgen_table.symbol_table.lookup(name);
-    if(alloca_reg==-1){// 返回-1证明不在symbol_table中，为全局变量
-        lval_attribute=semant_table.GlobalTable[name];
-        ptr_operand=GetNewGlobalOperand(name->get_string());
-    }else{//局部变量
-       ptr_operand=GetNewRegOperand(alloca_reg);//对于a=5这个例子，该条语句在构建%a这个操作数，或者存在的话直接返回;通过指针寄存器的值分配对应的操作数
-       lval_attribute=irgen_table.RegTable[alloca_reg];
-       formal_array_tag=irgen_table.FormalArrayTable[alloca_reg];//用于判断是否为函数参数
-    }
-/*   
-      int a[3][3];
-      int value = a[1][2]; 
 
-     %a = alloca [3 x [3 x i32]]   ; 分配一个 3x3 的二维数组，类型为 [3 x [3 x i32]]
-      %ptr = getelementptr inbounds [3 x [3 x i32]], [3 x [3 x i32]]* %a, i32 1, i32 2  ; 获取 a[1][2] 的地址
-      %val = load i32, i32* %ptr     ; 加载 a[1][2] 的值到 %val 中
-*/
-
-//下述代码相当于对a[1][2]的处理
-    auto lltype=TLLvm[lval_attribute.type];
-    if(indexs.empty()==false||attribute.T.type==Type::PTR){//对于数组
-        if(formal_array_tag){//非函数参数
-             indexs.insert(indexs.begin(),new ImmI32Operand(0));
-        }
-        if(lltype==BasicInstruction::LLVMType::I32)
-            IRgenGetElementptrIndexI32(b,lltype,++regnumber,ptr_operand,lval_attribute.dims,indexs);
-        else if(lltype==BasicInstruction::LLVMType::I64){
-            IRgenGetElementptrIndexI64(b,lltype,++regnumber,ptr_operand,lval_attribute.dims,indexs);
-        }
-        ptr_operand=GetNewRegOperand(regnumber);
-    }
-    ptr=ptr_operand;
-    if(is_left==false){//右值
-        if(attribute.T.type!=Type::PTR){
-            IRgenLoad(b,lltype,regnumber,ptr_operand);
-        }
-    }
-
- }
-```
-- 其中 ```if(formal_array_tag){//非函数参数
-             indexs.insert(indexs.begin(),new ImmI32Operand(0));
-        }``` 做出修改
+## VarDecl
+### int a=2;
+ - 先为a分配一个寄存器，放入符号表以及regtable中，通过oprand获得a的操作数
+ - 有初始化：
+    - 调用2->codeIR();数据类型转换；
+    - 其返回的结果存在相应regnumber中，获取操作数
+    - 进行store操作，将右边的初始化操作数store左边的值即a
+-  无初始化：
+    - 分为int和float型，得到一个初始化为0或者0f的操作数
+    - 进行store操作
+### int a[2][3]={1，2....}
+- 首先是将a加入到符号表中
+- 遍历a的每一个dims，将其push进入val中
+- IRgenAllocaArray 生成 %r0 = alloca [4 x [5 x i32]]
+- 将val加入regtable中
+- 遍历init表，对位进行数组初始化同时调用CallInstruction进行内存分配
+- 对于数组初始化：
+     - 对{1，2，....}遍历调用1->codeir();类型不匹配则进行类型转换
+     - 获取初始化的数组对应元素的位置 GetElementptrInstruction 插入对应的索引值
+   - 获得位置的操作数，以及初始化数值的操作数，进行store操作
 
 
-## 对于fun_call的处理：
+## ConstDecl
+  - 与Vardecl相同，只是其一定会有初始化列表
 
-- 在func_def的树中增加bool retruniszero=false；
-- 在 func_def中增加returnnumi以及retrunnumf分别来存储返回值为int或者float的值，通过判断其是否为0，来设置returniszero变量；
-- 对于returnnumi以及returnnumf的获取，在return_stmt函数中通过return 后面表达式的intval或者floatval值来设置上述两个变量，这样就可以覆盖直接为一个intconst或floatconst或者lval的情况；
+## FunDef
+### int f (int a[])
+- 进入新的作用域
+- new FunctionDefineInstruction 获取一个对于函数定义最开始的指令
+- 放入 llvmIR.NewFunction
+- 初始化寄存器和符号表：label从0开始，irgen_table.RegTable.clear();irgen_table.FormalArrayTable.clear();
+- 得到第一个block块（0号块）
+- 进行函数形参的处理：
+     - 遍历函数形参列表
+       - 正常形参
+            - 类型插入newFuncDef->InsertFormal(lltype);
+            - alloca分配寄存器，获取操作数
+            - store进行形参的传入  
+            - define i32 @f(i32 %r0)//其中的i32 %r0是在FunctionDefineInstruction中的printir()通过遍历插入的参数列表一起输出出来的
+              {
+                 L0:  ;
+                      %r1 = alloca i32
+                      store i32 %r0, ptr %r1
+                       br label %L1
+               }
+            - 加入符号表以及regtable表
+       - 数组  
+            - 类型插入为指针类型 newFuncDef->InsertFormal(BasicInstruction::LLVMType::PTR);
+            - 变量每一维度，将每一维dims加入相应的val.dims中
+            - 加入符号表，regtable表，FormalArrayTable表
+- IRgenBRUnCond(B, 1)无条件跳转到1号lable
+- 获得下一块，更新lable值
+- 调用block->codeIR();
+- 退出新的作用域
 
-## 目前类型检查存在问题：
-- 对于if以及while这种语句其中的cond进行检查，当检查不规范时，对于行号的输出存在一定问题，原因：在.y文件进行while以及if语句规约，记录行号时，记录的是整个语句的行号，导致最终的行号大小为最后的“}”的行号
-- 双目运算符缺少对于void类型的检查判断
+## Lval
+- 分配基本块
+- 初始化相关变量，操作数，变量属性
+- 从符号表symbol_table查找变量名name返回寄存器编号，区分全局（-1）和局部变量
+    - 局部
+        - 获取局部变量的寄存器操作数
+        - 保存寄存器编号对应的变量属性
+        - 检查是否为函数参数
+    - 全局
+        - 从全局表中获取变量属性
+        - 生成全局变量操作数
+- 处理数组元素
+    - index记录数组下标，同时类型转换？
+    - 对于局部数组，添加基地址偏移
+    - IRgenGetElementptrIndexI32：生成 getelementptr 指令，计算数组元素的地址
+    - 更新 ptr_operand 为新计算的地址
+- 处理右值
+    - 生成 load 指令，将值加载到寄存器
+## func_call:
+- FunctionTable表中获得函数返回类型
+- 有函数参数的调用：
+   - 在FunctionTable中获得获取形参，在该节点中获取实参
+   - 遍历实参：
+           - 调用cur_param->codeIR()进行实参代码输出; 
+           - 与形参类型不匹配则进行类型转换
+           -  args_vec.push_back({TLLvm[cur_fparam->attribute.T.type], GetNewRegOperand(regnumber)});将对用的实参类型及操作数放入args_vec中
+   - 如果返回类型为void 则 IRgenCallVoid(B, llvm_type, args_vec, name->get_string());
+   - 返回类型不是void  IRgenCall(B, llvm_type, regnumber, args_vec, name->get_string()); regnumber中记录返回值
+- 无函数参数的调用：
+    - 返回值为void:IRgenCallVoidNoArgs 
+    - 有回值：IRgenCallNoArgs(B, llvm_type, regnumber, name->get_string());其中regnumber中存储返回的值
+  

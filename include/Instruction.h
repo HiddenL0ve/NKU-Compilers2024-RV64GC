@@ -293,6 +293,7 @@ public:
     int GetOpcode() { return opcode; }    // one solution: convert to pointer of subclasses
 
     virtual void PrintIR(std::ostream &s) = 0;
+    virtual void ReplaceRegByMap(const std::map<int, int> &Rule)=0;
 };
 
 // load
@@ -307,7 +308,8 @@ public:
     Operand GetPointer() { return pointer; }
     void SetPointer(Operand op) { pointer = op; }
     Operand GetResult() { return result; }
-
+    int GetResultRegNo() { return ((RegOperand *)result)->GetRegNo(); }
+   int GetUseRegNum() { return ((RegOperand *)pointer)->GetRegNo(); }
     LoadInstruction(enum LLVMType type, Operand pointer, Operand result) {
         opcode = LLVMIROpcode::LOAD;
         this->type = type;
@@ -315,6 +317,7 @@ public:
         this->pointer = pointer;
     }
     void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 // store
@@ -330,7 +333,7 @@ public:
     Operand GetValue() { return value; }
     void SetValue(Operand op) { value = op; }
     void SetPointer(Operand op) { pointer = op; }
-
+    int GetDefRegNum() { return ((RegOperand *)pointer)->GetRegNo(); }
     StoreInstruction(enum LLVMType type, Operand pointer, Operand value) {
         opcode = LLVMIROpcode::STORE;
         this->type = type;
@@ -339,6 +342,7 @@ public:
     }
 
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 //<result>=add <ty> <op1>,<op2>
@@ -370,6 +374,7 @@ public:
     }
 
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 //<result>=icmp <cond> <ty> <op1>,<op2>
@@ -399,6 +404,7 @@ public:
         this->result = result;
     }
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 //<result>=fcmp <cond> <ty> <op1>,<op2>
@@ -425,6 +431,7 @@ public:
         this->result = result;
     }
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 // phi syntax:
@@ -448,6 +455,8 @@ public:
         this->result = result;
     }
     virtual void PrintIR(std::ostream &s);
+    void ErasePhi(int label_id);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 // alloca
@@ -462,6 +471,7 @@ public:
     enum LLVMType GetDataType() { return type; }
     Operand GetResult() { return result; }
     std::vector<int> GetDims() { return dims; }
+    int GetResultRegNo() { return ((RegOperand *)result)->GetRegNo(); }
     AllocaInstruction(enum LLVMType dttype, Operand result) {
         this->opcode = LLVMIROpcode::ALLOCA;
         this->type = dttype;
@@ -475,6 +485,7 @@ public:
     }
 
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 // Conditional branch
@@ -497,6 +508,7 @@ public:
     }
 
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 // Unconditional branch
@@ -512,6 +524,7 @@ public:
         this->destLabel = destLabel;
     }
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 /*
@@ -540,6 +553,7 @@ public:
         this->opcode = LLVMIROpcode::GLOBAL_VAR;
     }
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 class GlobalStringConstInstruction : public BasicInstruction {
@@ -549,7 +563,7 @@ public:
     GlobalStringConstInstruction(std::string strval, std::string strname) : str_val(strval), str_name(strname) {
         this->opcode = LLVMIROpcode::GLOBAL_STR;
     }
-
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
     virtual void PrintIR(std::ostream &s);
 };
 
@@ -598,6 +612,7 @@ public:
     void push_back_Parameter(std::pair<enum LLVMType, Operand> newPara) { args.push_back(newPara); }
     void push_back_Parameter(enum LLVMType type, Operand val) { args.push_back(std::make_pair(type, val)); }
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 /*
@@ -625,6 +640,7 @@ public:
     Operand GetRetVal() { return ret_val; }
 
     virtual void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 /*
@@ -668,7 +684,7 @@ public:
     Operand GetPtrVal() { return ptrval; }
     std::vector<int> GetDims() { return dims; }
     std::vector<Operand> GetIndexes() { return indexes; }
-
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
     void PrintIR(std::ostream &s);
 };
 
@@ -680,6 +696,7 @@ private:
 public:
     std::vector<enum LLVMType> formals;
     std::vector<Operand> formals_reg;
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
     FunctionDefineInstruction(enum LLVMType t, std::string n) {
         return_type = t;
         Func_name = n;
@@ -709,7 +726,7 @@ public:
     void InsertFormal(enum LLVMType t) { formals.push_back(t); }
     enum LLVMType GetReturnType() { return return_type; }
     std::string GetFunctionName() { return Func_name; }
-
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
     void PrintIR(std::ostream &s);
 };
 
@@ -727,6 +744,7 @@ public:
     Operand GetResult() { return result; }
     Operand GetSrc() { return value; }
     void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 // 这条指令目前只支持float和i32的转换，如果你需要double, i64等类型，需要自己添加更多变量
@@ -740,7 +758,7 @@ public:
         : result(result_receiver), value(value_for_cast) {
         this->opcode = SITOFP;
     }
-
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
     Operand GetResult() { return result; }
     Operand GetSrc() { return value; }
     void PrintIR(std::ostream &s);
@@ -762,6 +780,7 @@ public:
         this->opcode = ZEXT;
     }
     void PrintIR(std::ostream &s);
+    void ReplaceRegByMap(const std::map<int, int> &Rule);
 };
 
 std::ostream &operator<<(std::ostream &s, BasicInstruction::LLVMType type);

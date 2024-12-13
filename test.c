@@ -1,3 +1,4 @@
+#include <stdio.h>
 int main()
 {
     int a = 6;
@@ -50178,5 +50179,6 @@ int main()
             int j82 = 0;
         }
     }
+    printf("%d",a*a);
     return a*a;
 }

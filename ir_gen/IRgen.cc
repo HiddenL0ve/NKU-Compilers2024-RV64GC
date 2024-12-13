@@ -6,6 +6,8 @@ extern SemantTable semant_table;    // 也许你会需要一些语义分析的�
 
 IRgenTable irgen_table;    // 中间代码生成的辅助变量
 LLVMIR llvmIR;             // 我们需要在这个变量中生成中间代码
+std::map<FuncDefInstruction, int> max_label_map{};
+std::map<FuncDefInstruction, int> max_reg_map{};
 
 void AddLibFunctionDeclare();
 extern int regnumber;
@@ -534,8 +536,7 @@ void Lval::codeIR() {
     bool formal_array_tag = false;
     int alloca_reg = irgen_table.symbol_table.lookup(name);
     if (alloca_reg != -1) {    // 局部变量
-        ptr_operand = GetNewRegOperand(
-        alloca_reg);    // 对于a=5这个例子，该条语句在构建%a这个操作数，或者存在的话直接返回;通过指针寄存器的值分配对应的操作数
+        ptr_operand = GetNewRegOperand( alloca_reg);    // 对于a=5这个例子，该条语句在构建%a这个操作数，或者存在的话直接返回;通过指针寄存器的值分配对应的操作数
         lval_attribute = irgen_table.RegTable[alloca_reg];
         formal_array_tag = irgen_table.FormalArrayTable[alloca_reg];    // 用于判断是否为函数参数
     } else {    // 返回-1证明不在symbol_table中，为全局变量
@@ -547,7 +548,7 @@ void Lval::codeIR() {
           int value = a[1][2];
 
           %a = alloca [3 x [3 x i32]]   ; 分配一个 3x3 的二维数组，类型为 [3 x [3 x i32]]
-          %ptr = getelementptr inbounds [3 x [3 x i32]], [3 x [3 x i32]]* %a, i32 1, i32 2  ; 获取 a[1][2] 的地址
+          %ptr = getelementptr  [3 x [3 x i32]], [3 x [3 x i32]]* %a, i32 1, i32 2  ; 获取 a[1][2] 的地址
           %val = load i32, i32* %ptr     ; 加载 a[1][2] 的值到 %val 中
     */
 
@@ -1080,14 +1081,14 @@ void __FuncDef::codeIR() {
             IRgenAlloca(B, lltype, ++regnumber);
             Operand regi=GetNewRegOperand(i);
             Operand regn=GetNewRegOperand(regnumber);
-            IRgenStore(B, lltype, regi, regn);
+            IRgenStore(B, lltype, regi, regn);//将形参的值传入
             irgen_table.symbol_table.add_Symbol(formal->name, regnumber);
             irgen_table.RegTable[regnumber] = val;
         }
         else {//处理数组
             newFuncDef->InsertFormal(BasicInstruction::LLVMType::PTR);
-            for (int d = 1; d < formal->dims->size(); d++) {
-                auto formal_dim = formal->dims->at(d);
+            for (int d = 1; d < formal->dims->size(); d++) {//由于对于数组参数来说第一个高维度都为0，所以从下一维开始
+                auto formal_dim = formal->dims->at(d);//从 dims 容器中获取索引为 d 的元素
                 val.dims.push_back(formal_dim->attribute.V.val.IntVal);
             }
             irgen_table.FormalArrayTable[i] = 1;
@@ -1100,8 +1101,9 @@ void __FuncDef::codeIR() {
     B = llvmIR.NewBlock(now_function, ++max_label);
     now_label = max_label;
     block->codeIR();
-    // 保存当前函数
     AddNoReturnBlock();
+    max_reg_map[newFuncDef] = regnumber;
+    max_label_map[newFuncDef] = max_label;
     irgen_table.symbol_table.exit_scope();
 }
 

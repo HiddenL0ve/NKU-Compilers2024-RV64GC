@@ -31,7 +31,7 @@ public:
         return GetBlock(I, x);
     }
     void printIR(std::ostream &s);
-
+    void EraseUnreachInsAndBlocks();
     void CFGInit();
     void BuildCFG();
 };
