@@ -79,13 +79,13 @@ void LLVMIR::EraseUnreachInsAndBlocks() {
 }
 
 void LLVMIR::CFGInit() {
-     EraseUnreachInsAndBlocks();
+    EraseUnreachInsAndBlocks();
     for (auto &[defI, bb_map] : function_block_map) {
         CFG *cfg = new CFG();
         cfg->block_map = &bb_map;
         cfg->function_def = defI;
         cfg->max_label = max_label_map[defI];
-        //printf("%d",cfg->max_label);
+        // printf("%d",cfg->max_label);
         cfg->max_reg = max_reg_map[defI];
         cfg->BuildCFG();
         // TODO("init your members in class CFG if you need");
@@ -99,8 +99,8 @@ void LLVMIR::BuildCFG() {
     }
 }
 
-void CFG::BuildCFG() { 
-     G.clear();
+void CFG::BuildCFG() {
+    G.clear();
     G.resize(max_label + 1);
 
     invG.clear();
@@ -127,8 +127,8 @@ void CFG::BuildCFG() {
             ret_block = b;
         }
     }
-    //TODO("BuildCFG");
-     }
+    // TODO("BuildCFG");
+}
 
 std::vector<LLVMBlock> CFG::GetPredecessor(LLVMBlock B) { return invG[B->block_id]; }
 

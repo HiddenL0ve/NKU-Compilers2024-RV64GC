@@ -456,7 +456,9 @@ public:
     }
     virtual void PrintIR(std::ostream &s);
     void ErasePhi(int label_id);
+     void InsertPhi(Operand val, Operand label) { phi_list.push_back(std::make_pair(label, val)); }
     void ReplaceRegByMap(const std::map<int, int> &Rule);
+    int GetResultRegNo() { return ((RegOperand *)result)->GetRegNo(); }
 };
 
 // alloca

@@ -3,7 +3,7 @@
 
 static std::set<Instruction> EraseSet;
 static std::map<int, int> mem2reg_map;
-static std::set<int> common_allocas;      // alloca of common situations
+static std::set<int> common_allocas;    // alloca of common situations
 static std::map<PhiInstruction *, int> phi_map;
 // 检查该条alloca指令是否可以被mem2reg
 // eg. 数组不可以mem2reg
@@ -38,7 +38,7 @@ pseudo IR is:
 // 提示:deque直接在中间删除是O(n)的, 可以先标记要删除的指令, 最后想一个快速的方法统一删除
 void Mem2RegPass::Mem2RegNoUseAlloca(CFG *C, std::set<int> &vset) {
     // this function is used in InsertPhi
-     for (auto [id, b] : *C->block_map) {
+    for (auto [id, b] : *C->block_map) {
         for (auto Ins : b->Instruction_list) {
             if (Ins->GetOpcode() == BasicInstruction::LLVMIROpcode::STORE) {
                 auto S = (StoreInstruction *)Ins;
@@ -64,7 +64,7 @@ void Mem2RegPass::Mem2RegNoUseAlloca(CFG *C, std::set<int> &vset) {
     //         bb->InsertInstruction(1, I);
     //     }
     // }
-    //TODO("Mem2RegNoUseAlloca");
+    // TODO("Mem2RegNoUseAlloca");
 }
 
 /*
@@ -95,7 +95,7 @@ pseudo IR is:
 // 该函数对你的时间复杂度有一定要求，你需要保证你的时间复杂度小于等于O(nlognlogn), n为该函数的指令数
 void Mem2RegPass::Mem2RegUseDefInSameBlock(CFG *C, std::set<int> &vset, int block_id) {
     // this function is used in InsertPhi
-     std::map<int, int> curr_reg_map;
+    std::map<int, int> curr_reg_map;
     for (auto I : (*C->block_map)[block_id]->Instruction_list) {
         if (I->GetOpcode() == BasicInstruction::LLVMIROpcode::STORE) {
             auto StoreI = (StoreInstruction *)I;
@@ -138,14 +138,14 @@ void Mem2RegPass::Mem2RegUseDefInSameBlock(CFG *C, std::set<int> &vset, int bloc
     //         bb->InsertInstruction(1, I);
     //     }
     // }
-    //TODO("Mem2RegUseDefInSameBlock");
+    // TODO("Mem2RegUseDefInSameBlock");
 }
 
 // vset is the set of alloca regno that one store dominators all load instructions
 // 该函数对你的时间复杂度有一定要求，你需要保证你的时间复杂度小于等于O(nlognlogn)
 void Mem2RegPass::Mem2RegOneDefDomAllUses(CFG *C, std::set<int> &vset) {
     // this function is used in InsertPhi
-     std::map<int, int> curr_reg_map;
+    std::map<int, int> curr_reg_map;
     for (auto [id, b] : *C->block_map) {
         for (auto I : b->Instruction_list) {
             if (I->GetOpcode() == BasicInstruction::LLVMIROpcode::STORE) {
@@ -190,7 +190,7 @@ void Mem2RegPass::Mem2RegOneDefDomAllUses(CFG *C, std::set<int> &vset) {
     //         bb->InsertInstruction(1, I);
     //     }
     // }
-    //TODO("Mem2RegOneDefDomAllUses");
+    // TODO("Mem2RegOneDefDomAllUses");
 }
 auto CalculatedDefAndUse(CFG *C) {
     // set of basic blocks id that contain definitions(uses) of key
@@ -217,14 +217,14 @@ auto CalculatedDefAndUse(CFG *C) {
     }
     return std::tuple(defs, uses, def_num);
 }
-void Mem2RegPass::InsertPhi(CFG *C) { 
+void Mem2RegPass::InsertPhi(CFG *C) {
     auto [defs, uses, def_num] = CalculatedDefAndUse(C);
     LLVMBlock entry_BB = (*C->block_map)[0];
     std::set<int> no_use_vset, onedom_vset;
     std::map<int, std::set<int>> sameblock_vset_map;
-    DominatorTree* tree= domtrees->GetDomTree(C);
+    DominatorTree *tree = domtrees->GetDomTree(C);
 
-    printf("%d",*(defs[0].begin()));
+    printf("%d", *(defs[0].begin()));
     for (auto I : entry_BB->Instruction_list) {
         if (I->GetOpcode() != BasicInstruction::LLVMIROpcode::ALLOCA) {
             continue;
@@ -268,6 +268,27 @@ void Mem2RegPass::InsertPhi(CFG *C) {
                 continue;
             }
         }
+        common_allocas.insert(v);
+        EraseSet.insert(I);
+        std::set<int> F{};            // set of blocks where phi is added
+        std::set<int> W = defs[v];    // set of blocks that contain the def of regno
+
+        while (!W.empty()) {
+            int BB_X = *W.begin();
+            W.erase(BB_X);
+            for (auto BB_Y : tree->GetDF(BB_X)) {
+                // std::cout<<v<<" "<<BB_X<<" "<<BB_Y<<"\n";
+                if (F.find(BB_Y) == F.end()) {
+                    PhiInstruction *PhiI = new PhiInstruction(type, GetNewRegOperand(++C->max_reg));
+                    (*C->block_map)[BB_Y]->InsertInstruction(0, PhiI);
+                    phi_map[PhiI] = v;
+                    F.insert(BB_Y);
+                    if (defs[v].find(BB_Y) == defs[v].end()) {
+                        W.insert(BB_Y);
+                    }
+                }
+            }
+        }
     }
     Mem2RegNoUseAlloca(C, no_use_vset);
     Mem2RegOneDefDomAllUses(C, onedom_vset);
@@ -285,10 +306,9 @@ void Mem2RegPass::InsertPhi(CFG *C) {
     //     }
     // }
 
-
-    //TODO("InsertPhi");
+    // TODO("InsertPhi");
 }
-int in_allocas(std::set<int> &S, Instruction I) {
+int Mem2RegPass::in_allocas(std::set<int> &S, Instruction I) {
     if (I->GetOpcode() == BasicInstruction::LLVMIROpcode::LOAD) {
         auto LoadI = (LoadInstruction *)I;
         if (LoadI->GetPointer()->GetOperandType() != BasicOperand::REG) {
@@ -312,7 +332,7 @@ int in_allocas(std::set<int> &S, Instruction I) {
     return -1;
 }
 void Mem2RegPass::VarRename(CFG *C) {
-    //TODO("VarRename");
+    // TODO("VarRename");
     std::map<int, std::map<int, int>> WorkList;    //< BB, <alloca_reg,val_reg> >
     WorkList.insert({0, std::map<int, int>{}});
     std::vector<int> BBvis;
@@ -345,46 +365,47 @@ void Mem2RegPass::VarRename(CFG *C) {
                     IncomingVals[v] = ((RegOperand *)(StoreI->GetValue()))->GetRegNo();
                 }
             }
-            // if (I->GetOpcode() == PHI) {
-            //     auto PhiI = (PhiInstruction *)I;
-            //     if (EraseSet.find(PhiI) != EraseSet.end()) {
-            //         continue;
-            //     }
-            //     auto it = phi_map.find(PhiI);
-            //     if (it != phi_map.end()) {    // phi instruction is in allocas
-            //         // 更新IncomingVals[v] = val
-            //         IncomingVals[it->second] = PhiI->GetResultRegNo();
-            //     }
-            // }
+            if (I->GetOpcode() == BasicInstruction::LLVMIROpcode::PHI) {
+                auto PhiI = (PhiInstruction *)I;
+                if (EraseSet.find(PhiI) != EraseSet.end()) {
+                    continue;
+                }
+                auto it = phi_map.find(PhiI);
+                if (it != phi_map.end()) {    // phi instruction is in allocas
+                    // 更新IncomingVals[v] = val
+                    IncomingVals[it->second] = PhiI->GetResultRegNo();
+                }
+            }
         }
-        // for (auto succ : C->G[BB]) {
-        //     int BBv = succ->block_id;
-        //     WorkList.insert({BBv, IncomingVals});
-        //     for (auto I : (*C->block_map)[BBv]->Instruction_list) {
-        //         if (I->GetOpcode() != PHI) {
-        //             break;
-        //         }
-        //         auto PhiI = (PhiInstruction *)I;
-        //         // 找到 phi 对应的 alloca
-        //         auto it = phi_map.find(PhiI);
-        //         if (it != phi_map.end()) {
-        //             int v = it->second;
-        //             if (IncomingVals.find(v) == IncomingVals.end()) {
-        //                 EraseSet.insert(PhiI);
-        //                 continue;
-        //             }
-        //             // 为 phi 添加前驱块到当前块的边
-        //             PhiI->InsertPhi(GetNewRegOperand(IncomingVals[v]), GetNewLabelOperand(BB));
-        //         }
-        //     }
-        // }
+        for (auto succ : C->G[BB]) {
+            int BBv = succ->block_id;
+            WorkList.insert({BBv, IncomingVals});
+            for (auto I : (*C->block_map)[BBv]->Instruction_list) {
+                if (I->GetOpcode() != BasicInstruction::LLVMIROpcode::PHI) {
+                    break;
+                }
+                auto PhiI = (PhiInstruction *)I;
+                // 找到 phi 对应的 alloca
+                auto it = phi_map.find(PhiI);
+                if (it != phi_map.end()) {
+                    int v = it->second;
+                    if (IncomingVals.find(v) == IncomingVals.end()) {
+                        EraseSet.insert(PhiI);
+                        continue;
+                    }
+                    // 为 phi 添加前驱块到当前块的边
+                    PhiI->InsertPhi(GetNewRegOperand(IncomingVals[v]), GetNewLabelOperand(BB));
+                }
+            }
+        }
     }
 
     for (auto [id, bb] : *C->block_map) {
         for (auto I : bb->Instruction_list) {
-            if (I->GetOpcode() == BasicInstruction::LLVMIROpcode::LOAD && ((LoadInstruction *)I)->GetPointer()->GetOperandType() == BasicOperand::REG) {
-                
-                int result =((LoadInstruction *)I)->GetResultRegNo();
+            if (I->GetOpcode() == BasicInstruction::LLVMIROpcode::LOAD &&
+                ((LoadInstruction *)I)->GetPointer()->GetOperandType() == BasicOperand::REG) {
+
+                int result = ((LoadInstruction *)I)->GetResultRegNo();
                 if (mem2reg_map.find(result) != mem2reg_map.end()) {
                     int result2 = mem2reg_map[result];
                     while (mem2reg_map.find(result2) != mem2reg_map.end()) {
@@ -418,7 +439,7 @@ void Mem2RegPass::VarRename(CFG *C) {
     mem2reg_map.clear();
     common_allocas.clear();
     phi_map.clear();
-     }
+}
 
 void Mem2RegPass::Mem2Reg(CFG *C) {
     InsertPhi(C);

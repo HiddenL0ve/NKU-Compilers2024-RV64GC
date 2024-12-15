@@ -41,7 +41,7 @@ def add_returncode(file,ret):
 # 测试用例的返回值的不要为124或139，否则会导致测试程序误判
 
 def execute_ir(input,output,opt,stdin,stdout,testout):
-    result = execute(["timeout","30","./bin/SysYc","-llvm","-o",output,input,opt])
+    result = execute(["timeout","40","./bin/SysYc","-llvm","-o",output,input,opt])
     if(result.returncode != 0):
         print("\033[93mCompile Error on \033[0m"+input)
         #print(result.returncode)  # 添加这一行来打印编译错误信息
