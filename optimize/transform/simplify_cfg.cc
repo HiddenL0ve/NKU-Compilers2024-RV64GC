@@ -19,34 +19,38 @@ void SimplifyCFGPass::EliminateUnreachedBlocksInsts(CFG *C) {
     while (!stack.empty()) {
         LLVMBlock current_block = stack.top();
         stack.pop();
-        // 获取当前基本块的后继基本块
         std::vector<LLVMBlock> successors = C->GetSuccessor(current_block);
-        // 遍历后继基本块
         for (LLVMBlock succ : successors) {
             int succ_id = succ->block_id;
             if (!visited[succ_id]) {
                 visited[succ_id] = true;
+                //printf("%d ",succ_id);
                 stack.push(succ);
             }
         }
+        //printf("\n");
     }
     
     // 遍历所有基本块，删除不可达的基本块和指令
-    for (int i = 0; i < C->block_map->size(); ++i) {
-        if (!visited[i]) {
-            // 删除不可达基本块的指令
-            LLVMBlock block_to_remove = C->block_map->at(i);
-            
-            // 清空该基本块的指令列表
+   for (auto it = C->block_map->begin(); it != C->block_map->end(); ) {
+        int block_id = it->first;
+        LLVMBlock block_to_remove = it->second;
+
+        if (!visited[block_id]) {
+            // 清空指令并删除块
             block_to_remove->Instruction_list.clear();
-            
-            // 删除该基本块
-            C->block_map->erase(i);
-            // 从控制流图中移除该基本块
-            C->G[i].clear();
+            it = C->block_map->erase(it);
+
+            // 更新邻接表G和invG
+            C->G[block_id].clear();
             for (auto& succ_list : C->G) {
                 succ_list.erase(std::remove(succ_list.begin(), succ_list.end(), block_to_remove), succ_list.end());
             }
+            for (auto& pred_list : C->invG) {
+                pred_list.erase(std::remove(pred_list.begin(), pred_list.end(), block_to_remove), pred_list.end());
+            }
+        } else {
+            ++it;
         }
     }
 }
