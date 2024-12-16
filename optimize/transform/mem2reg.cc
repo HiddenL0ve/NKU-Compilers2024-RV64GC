@@ -54,16 +54,16 @@ void Mem2RegPass::Mem2RegNoUseAlloca(CFG *C, std::set<int> &vset) {
             }
         }
     }
-    // for (auto [id, bb] : *C->block_map) {
-    //     auto tmp_Instruction_list = bb->Instruction_list;
-    //     bb->Instruction_list.clear();
-    //     for (auto I : tmp_Instruction_list) {
-    //         if (EraseSet.find(I) != EraseSet.end()) {
-    //             continue;
-    //         }
-    //         bb->InsertInstruction(1, I);
-    //     }
-    // }
+    for (auto [id, bb] : *C->block_map) {
+        auto tmp_Instruction_list = bb->Instruction_list;
+        bb->Instruction_list.clear();
+        for (auto I : tmp_Instruction_list) {
+            if (EraseSet.find(I) != EraseSet.end()) {
+                continue;
+            }
+            bb->InsertInstruction(1, I);
+        }
+    }
     // TODO("Mem2RegNoUseAlloca");
 }
 
@@ -224,7 +224,7 @@ void Mem2RegPass::InsertPhi(CFG *C) {
     std::map<int, std::set<int>> sameblock_vset_map;
     DominatorTree *tree = domtrees->GetDomTree(C);
 
-    printf("%d", *(defs[0].begin()));
+    //printf("%d", *(defs[0].begin()));
     for (auto I : entry_BB->Instruction_list) {
         if (I->GetOpcode() != BasicInstruction::LLVMIROpcode::ALLOCA) {
             continue;
