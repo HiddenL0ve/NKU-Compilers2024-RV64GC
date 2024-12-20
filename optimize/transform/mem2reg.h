@@ -16,7 +16,7 @@ private:
     void InsertPhi(CFG *C);
     void VarRename(CFG *C);
     void Mem2Reg(CFG *C);
-    int in_allocas(std::set<int> &S, Instruction I);
+    int getAllocaRegIfUsed(std::set<int> &S, Instruction I);
 
 public:
     Mem2RegPass(LLVMIR *IR, DomAnalysis *dom) : IRPass(IR) { domtrees = dom; }

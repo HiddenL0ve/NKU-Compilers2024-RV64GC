@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
     // 消除不可达基本块和指令在不开启O1的情况也需要进行，原因是这属于基本优化
 
     optimize_flag = (argc == 6 && (strcmp(argv[optimize_tag], "-O1") == 0));
-    if (optimize_flag) {
+    if (1) {
         DomAnalysis dom(&llvmIR);
         
         dom.Execute();   // 完成支配树建立后，取消该行代码的注释

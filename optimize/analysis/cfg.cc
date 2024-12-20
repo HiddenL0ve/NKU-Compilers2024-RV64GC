@@ -36,7 +36,7 @@ void CFG::BuildCFG() {
         auto &list = b->Instruction_list;
         int pos=list.size();
         for (int i = 0; i < list.size(); i++) {
-                if (list[i]->GetOpcode() == BasicInstruction::LLVMIROpcode::RET) {
+                if (list[i]->GetOpcode() == BasicInstruction::LLVMIROpcode::RET||list[i]->GetOpcode() == BasicInstruction::LLVMIROpcode::BR_UNCOND) {
                     pos = i;
                     break;
                 }
@@ -44,7 +44,8 @@ void CFG::BuildCFG() {
         while (list.size() > pos + 1) {
                 list.pop_back();
         }
-        Instruction ins = list[list.size() - 1];
+        for(int i=0;i<list.size();i++){
+        Instruction ins = list[i];
         int opcode = ins->GetOpcode();
         if (opcode == BasicInstruction::LLVMIROpcode::BR_UNCOND) {
             BrUncondInstruction *br = (BrUncondInstruction *)ins;
@@ -62,6 +63,7 @@ void CFG::BuildCFG() {
         } else if (opcode == BasicInstruction::LLVMIROpcode::RET) {
             ret_block = b;
         }
+      }
     }
     // TODO("BuildCFG");
 }

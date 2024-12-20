@@ -31,11 +31,11 @@ void DominatorTree::BuildDominatorTree(bool reverse) {
     int num = C->max_label + 1;
     printf("%d", C->max_label + 1);
     dom_tree.clear();
-    dom_tree.resize(num);
+    dom_tree.resize(num);//一个存储每个节点的支配树的容器，dom_tree[i] 存储直接支配节点 i 。
     idom.clear();
     atdom.clear();
     atdom.resize(num);
-    std::vector<int> PostOrder_id;
+    std::vector<int> PostOrder_id;//节点的后续遍历的结果存储
     std::vector<int> vsd;
     for (int i = 0; i <= C->max_label; i++) {
         vsd.push_back(0);
@@ -45,24 +45,24 @@ void DominatorTree::BuildDominatorTree(bool reverse) {
     for (int i = 0; i <= C->max_label; i++) {
         for (int j = 0; j <= C->max_label; j++) {
             if (i != begin_id) {
-                atdom[i].set(j);    // 相当于 setbit(j, 1)
+                atdom[i].set(j);    // 初始化全部为1
             }
         }
     }
     bool changed = 1;
-    while (changed) {
+    while (changed) {//节点 u 的支配集合 = 其前驱节点支配集合的交集，再加上节点自身。
         changed = false;
         for (std::vector<int>::reverse_iterator it = PostOrder_id.rbegin(); it != PostOrder_id.rend(); ++it) {
             auto u = *it;
             BitsetType new_dom_u;
 
             if (!(*invG)[u].empty()) {
-                new_dom_u = atdom[(*((*invG)[u].begin()))->block_id];
+                new_dom_u = atdom[(*((*invG)[u].begin()))->block_id];//首先让其输出化为前驱第一个节点的支配集合
                 for (auto v : (*invG)[u]) {
-                    new_dom_u &= atdom[v->block_id];
+                    new_dom_u &= atdom[v->block_id];//与上所有的前驱节点的支配集合
                 }
             }
-            new_dom_u.set(u);    // 设置当前节点
+            new_dom_u.set(u);    // 设置当前节点；再加上节点自身
             if (new_dom_u != atdom[u]) {
                 atdom[u] = new_dom_u;
                 changed = true;
@@ -74,33 +74,31 @@ void DominatorTree::BuildDominatorTree(bool reverse) {
         if (u == begin_id) {
             continue;
         }
-        for (int v = 0; v <= C->max_label; v++) {
+        for (int v = 0; v <= C->max_label; v++) {//直接支配是一个特殊的概念，指的是在支配集合中，除了当前节点 u 之外，没有其他的节点能够支配v
             if (atdom[u].test(v)) {    // 使用 test() 方法检查位是否被设置
-                BitsetType tmp = (atdom[u] & atdom[v]) ^ atdom[u];
+                auto tmp = (atdom[u] & atdom[v]) ^ atdom[u];
                 if (tmp.count() == 1 && tmp.test(u)) {
                     idom[u] = (*C->block_map)[v];
                     dom_tree[v].push_back((*C->block_map)[u]);
                 }
             }
         }
+    }
         df.clear();
         df.resize(num);
         for (int i = 0; i < (*G).size(); i++) {
-            for (auto edg_end : (*G)[i]) {
-                int a = i;
-                int b = edg_end->block_id;
-                int x = a;
-                while (x == b || IsDominate(x, b) == 0) {
-                    df[x].set(b);    // 设置支配前沿关系
-                    if (idom[x] != NULL) {
-                        x = idom[x]->block_id;
-                    } else {
-                        break;
-                    }
-                }
+            if(C->invG[i].size()<2){
+                continue;
+            }
+            for(auto edg_end : (*invG)[i]){
+                  int runner=edg_end->block_id;//第一个循环：一个块自己支配自己，所以也满足支配其前驱但是不直接支配他
+                  while(idom[i]->block_id!=runner&&runner!=begin_id){
+                    df[runner].set(i);
+                    runner=idom[runner]->block_id;//支配其前驱但是又不直接支配他
+                  }
             }
         }
-    }
+    
 }
 
 std::set<int> DominatorTree::GetDF(std::set<int> S) {
@@ -126,7 +124,7 @@ std::set<int> DominatorTree::GetDF(std::set<int> S) {
 std::set<int> DominatorTree::GetDF(int id) {
     std::set<int> ret;
     for (int i = 0; i <= C->max_label; ++i) {
-        // if (df[id][i]) {
+        
         if (df[id].test(i)) {
             ret.insert(i);
         }

@@ -40,59 +40,59 @@ GlobalOperand *GetNewGlobalOperand(std::string name) {
     }
 }
 
-void IRgenArithmeticI32(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int reg1, int reg2, int result_reg) {
+void IRgenArithmeticI32(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int reg1, int reg2, int reg) {
     B->InsertInstruction(1, new ArithmeticInstruction(opcode, BasicInstruction::LLVMType::I32, GetNewRegOperand(reg1),
-                                                      GetNewRegOperand(reg2), GetNewRegOperand(result_reg)));
+                                                      GetNewRegOperand(reg2), GetNewRegOperand(reg)));
 }
 
-void IRgenArithmeticF32(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int reg1, int reg2, int result_reg) {
+void IRgenArithmeticF32(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int reg1, int reg2, int reg) {
     B->InsertInstruction(1,
                          new ArithmeticInstruction(opcode, BasicInstruction::LLVMType::FLOAT32, GetNewRegOperand(reg1),
-                                                   GetNewRegOperand(reg2), GetNewRegOperand(result_reg)));
+                                                   GetNewRegOperand(reg2), GetNewRegOperand(reg)));
 }
 
-void IRgenArithmeticI32ImmLeft(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int val1, int reg2, int result_reg) {
+void IRgenArithmeticI32ImmLeft(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int val1, int reg2, int reg) {
     B->InsertInstruction(1, new ArithmeticInstruction(opcode, BasicInstruction::LLVMType::I32, new ImmI32Operand(val1),
-                                                      GetNewRegOperand(reg2), GetNewRegOperand(result_reg)));
+                                                      GetNewRegOperand(reg2), GetNewRegOperand(reg)));
 }
 
 void IRgenArithmeticF32ImmLeft(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, float val1, int reg2,
-                               int result_reg) {
+                               int reg) {
     B->InsertInstruction(1,
                          new ArithmeticInstruction(opcode, BasicInstruction::LLVMType::FLOAT32, new ImmF32Operand(val1),
-                                                   GetNewRegOperand(reg2), GetNewRegOperand(result_reg)));
+                                                   GetNewRegOperand(reg2), GetNewRegOperand(reg)));
 }
 
-void IRgenArithmeticI32ImmAll(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int val1, int val2, int result_reg) {
+void IRgenArithmeticI32ImmAll(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, int val1, int val2, int reg) {
     B->InsertInstruction(1, new ArithmeticInstruction(opcode, BasicInstruction::LLVMType::I32, new ImmI32Operand(val1),
-                                                      new ImmI32Operand(val2), GetNewRegOperand(result_reg)));
+                                                      new ImmI32Operand(val2), GetNewRegOperand(reg)));
 }
 
 void IRgenArithmeticF32ImmAll(LLVMBlock B, BasicInstruction::LLVMIROpcode opcode, float val1, float val2,
-                              int result_reg) {
+                              int reg) {
     B->InsertInstruction(1,
                          new ArithmeticInstruction(opcode, BasicInstruction::LLVMType::FLOAT32, new ImmF32Operand(val1),
-                                                   new ImmF32Operand(val2), GetNewRegOperand(result_reg)));
+                                                   new ImmF32Operand(val2), GetNewRegOperand(reg)));
 }
 
-void IRgenIcmp(LLVMBlock B, BasicInstruction::IcmpCond cmp_op, int reg1, int reg2, int result_reg) {
+void IRgenIcmp(LLVMBlock B, BasicInstruction::IcmpCond cmp_op, int reg1, int reg2, int reg) {
     B->InsertInstruction(1, new IcmpInstruction(BasicInstruction::LLVMType::I32, GetNewRegOperand(reg1),
-                                                GetNewRegOperand(reg2), cmp_op, GetNewRegOperand(result_reg)));
+                                                GetNewRegOperand(reg2), cmp_op, GetNewRegOperand(reg)));
 }
 
-void IRgenFcmp(LLVMBlock B, BasicInstruction::FcmpCond cmp_op, int reg1, int reg2, int result_reg) {
+void IRgenFcmp(LLVMBlock B, BasicInstruction::FcmpCond cmp_op, int reg1, int reg2, int reg) {
     B->InsertInstruction(1, new FcmpInstruction(BasicInstruction::LLVMType::FLOAT32, GetNewRegOperand(reg1),
-                                                GetNewRegOperand(reg2), cmp_op, GetNewRegOperand(result_reg)));
+                                                GetNewRegOperand(reg2), cmp_op, GetNewRegOperand(reg)));
 }
 
-void IRgenIcmpImmRight(LLVMBlock B, BasicInstruction::IcmpCond cmp_op, int reg1, int val2, int result_reg) {
+void IRgenIcmpImmRight(LLVMBlock B, BasicInstruction::IcmpCond cmp_op, int reg1, int val2, int reg) {
     B->InsertInstruction(1, new IcmpInstruction(BasicInstruction::LLVMType::I32, GetNewRegOperand(reg1),
-                                                new ImmI32Operand(val2), cmp_op, GetNewRegOperand(result_reg)));
+                                                new ImmI32Operand(val2), cmp_op, GetNewRegOperand(reg)));
 }
 
-void IRgenFcmpImmRight(LLVMBlock B, BasicInstruction::FcmpCond cmp_op, int reg1, float val2, int result_reg) {
+void IRgenFcmpImmRight(LLVMBlock B, BasicInstruction::FcmpCond cmp_op, int reg1, float val2, int reg) {
     B->InsertInstruction(1, new FcmpInstruction(BasicInstruction::LLVMType::FLOAT32, GetNewRegOperand(reg1),
-                                                new ImmF32Operand(val2), cmp_op, GetNewRegOperand(result_reg)));
+                                                new ImmF32Operand(val2), cmp_op, GetNewRegOperand(reg)));
 }
 
 void IRgenFptosi(LLVMBlock B, int src, int dst) {
@@ -108,18 +108,18 @@ void IRgenZextI1toI32(LLVMBlock B, int src, int dst) {
                                                 BasicInstruction::LLVMType::I1, GetNewRegOperand(src)));
 }
 
-void IRgenGetElementptrIndexI32(LLVMBlock B, BasicInstruction::LLVMType type, int result_reg, Operand ptr,
+void IRgenGetElementptrIndexI32(LLVMBlock B, BasicInstruction::LLVMType type, int reg, Operand ptr,
                         std::vector<int> dims, std::vector<Operand> indexs) {
-    B->InsertInstruction(1, new GetElementptrInstruction(type, GetNewRegOperand(result_reg), ptr, dims, indexs, BasicInstruction::I32));
+    B->InsertInstruction(1, new GetElementptrInstruction(type, GetNewRegOperand(reg), ptr, dims, indexs, BasicInstruction::I32));
 }
 
-void IRgenGetElementptrIndexI64(LLVMBlock B, BasicInstruction::LLVMType type, int result_reg, Operand ptr,
+void IRgenGetElementptrIndexI64(LLVMBlock B, BasicInstruction::LLVMType type, int reg, Operand ptr,
                         std::vector<int> dims, std::vector<Operand> indexs) {
-    B->InsertInstruction(1, new GetElementptrInstruction(type, GetNewRegOperand(result_reg), ptr, dims, indexs, BasicInstruction::I64));
+    B->InsertInstruction(1, new GetElementptrInstruction(type, GetNewRegOperand(reg), ptr, dims, indexs, BasicInstruction::I64));
 }
 
-void IRgenLoad(LLVMBlock B, BasicInstruction::LLVMType type, int result_reg, Operand ptr) {
-    B->InsertInstruction(1, new LoadInstruction(type, ptr, GetNewRegOperand(result_reg)));
+void IRgenLoad(LLVMBlock B, BasicInstruction::LLVMType type, int reg, Operand ptr) {
+    B->InsertInstruction(1, new LoadInstruction(type, ptr, GetNewRegOperand(reg)));
 }
 
 void IRgenStore(LLVMBlock B, BasicInstruction::LLVMType type, int value_reg, Operand ptr) {
@@ -130,9 +130,9 @@ void IRgenStore(LLVMBlock B, BasicInstruction::LLVMType type, Operand value, Ope
     B->InsertInstruction(1, new StoreInstruction(type, ptr, value));
 }
 
-void IRgenCall(LLVMBlock B, BasicInstruction::LLVMType type, int result_reg,
+void IRgenCall(LLVMBlock B, BasicInstruction::LLVMType type, int reg,
                std::vector<std::pair<enum BasicInstruction::LLVMType, Operand>> args, std::string name) {
-    B->InsertInstruction(1, new CallInstruction(type, GetNewRegOperand(result_reg), name, args));
+    B->InsertInstruction(1, new CallInstruction(type, GetNewRegOperand(reg), name, args));
 }
 
 void IRgenCallVoid(LLVMBlock B, BasicInstruction::LLVMType type,
@@ -140,8 +140,8 @@ void IRgenCallVoid(LLVMBlock B, BasicInstruction::LLVMType type,
     B->InsertInstruction(1, new CallInstruction(type, GetNewRegOperand(-1), name, args));
 }
 
-void IRgenCallNoArgs(LLVMBlock B, BasicInstruction::LLVMType type, int result_reg, std::string name) {
-    B->InsertInstruction(1, new CallInstruction(type, GetNewRegOperand(result_reg), name));
+void IRgenCallNoArgs(LLVMBlock B, BasicInstruction::LLVMType type, int reg, std::string name) {
+    B->InsertInstruction(1, new CallInstruction(type, GetNewRegOperand(reg), name));
 }
 
 void IRgenCallVoidNoArgs(LLVMBlock B, BasicInstruction::LLVMType type, std::string name) {
@@ -197,9 +197,9 @@ void LoadInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
             this->pointer = GetNewRegOperand(Rule.find(pointer_reg->GetRegNo())->second);
     }
     if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
 }
 
@@ -218,85 +218,87 @@ void StoreInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
 
 void ArithmeticInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     if (op2->GetOperandType() == BasicOperand::REG) {
-        auto op2_reg = (RegOperand *)op2;
-        if (Rule.find(op2_reg->GetRegNo()) != Rule.end())
-            this->op2 = GetNewRegOperand(Rule.find(op2_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)op2;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->op2 = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
     if (op1->GetOperandType() == BasicOperand::REG) {
-        auto op1_reg = (RegOperand *)op1;
-        if (Rule.find(op1_reg->GetRegNo()) != Rule.end())
-            this->op1 = GetNewRegOperand(Rule.find(op1_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)op1;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->op1 = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
     if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
 }
 
 void IcmpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+     if (result->GetOperandType() == BasicOperand::REG) {
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
+    }
     if (op2->GetOperandType() == BasicOperand::REG) {
-        auto op2_reg = (RegOperand *)op2;
-        if (Rule.find(op2_reg->GetRegNo()) != Rule.end())
-            this->op2 = GetNewRegOperand(Rule.find(op2_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)op2;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->op2 = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
     if (op1->GetOperandType() == BasicOperand::REG) {
-        auto op1_reg = (RegOperand *)op1;
-        if (Rule.find(op1_reg->GetRegNo()) != Rule.end())
-            this->op1 = GetNewRegOperand(Rule.find(op1_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)op1;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->op1 = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
-    if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
-    }
+   
 }
 
 void FcmpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
-    if (op2->GetOperandType() == BasicOperand::REG) {
-        auto op2_reg = (RegOperand *)op2;
-        if (Rule.find(op2_reg->GetRegNo()) != Rule.end())
-            this->op2 = GetNewRegOperand(Rule.find(op2_reg->GetRegNo())->second);
-    }
     if (op1->GetOperandType() == BasicOperand::REG) {
-        auto op1_reg = (RegOperand *)op1;
-        if (Rule.find(op1_reg->GetRegNo()) != Rule.end())
-            this->op1 = GetNewRegOperand(Rule.find(op1_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)op1;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->op1 = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
-    if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+     if (result->GetOperandType() == BasicOperand::REG) {
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
+    if (op2->GetOperandType() == BasicOperand::REG) {
+        auto reg = (RegOperand *)op2;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->op2 = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
+    }
+   
 }
 
 void PhiInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     for (auto &label_pair : phi_list) {
         auto &op1 = label_pair.first;
         if (op1->GetOperandType() == BasicOperand::REG) {
-            auto op1_reg = (RegOperand *)op1;
-            if (Rule.find(op1_reg->GetRegNo()) != Rule.end())
-                op1 = GetNewRegOperand(Rule.find(op1_reg->GetRegNo())->second);
+            auto reg = (RegOperand *)op1;
+            if (Rule.find(reg->GetRegNo()) != Rule.end())
+                op1 = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
         }
         auto &op2 = label_pair.second;
         if (op2->GetOperandType() == BasicOperand::REG) {
-            auto op2_reg = (RegOperand *)op2;
-            if (Rule.find(op2_reg->GetRegNo()) != Rule.end())
-                op2 = GetNewRegOperand(Rule.find(op2_reg->GetRegNo())->second);
+            auto reg = (RegOperand *)op2;
+            if (Rule.find(reg->GetRegNo()) != Rule.end())
+                op2 = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
         }
     }
     if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
 }
 
 void AllocaInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
 }
 
@@ -324,9 +326,9 @@ void CallInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
     if (result != NULL) {
         if (result->GetOperandType() == BasicOperand::REG) {
-            auto result_reg = (RegOperand *)result;
-            if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-                this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+            auto reg = (RegOperand *)result;
+            if (Rule.find(reg->GetRegNo()) != Rule.end())
+                this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
         }
     }
 }
@@ -334,9 +336,9 @@ void CallInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
 void RetInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     if (ret_val != NULL) {
         if (ret_val->GetOperandType() == BasicOperand::REG) {
-            auto result_reg = (RegOperand *)ret_val;
-            if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-                ret_val = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+            auto reg = (RegOperand *)ret_val;
+            if (Rule.find(reg->GetRegNo()) != Rule.end())
+                ret_val = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
         }
     }
 }
@@ -344,22 +346,22 @@ void RetInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
 
 
 void GetElementptrInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
-    if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
-    }
-    if (ptrval->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)ptrval;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->ptrval = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
-    }
     for (auto &idx_pair : indexes) {
         if (idx_pair->GetOperandType() == BasicOperand::REG) {
             auto idx_reg = (RegOperand *)idx_pair;
             if (Rule.find(idx_reg->GetRegNo()) != Rule.end())
                 idx_pair = GetNewRegOperand(Rule.find(idx_reg->GetRegNo())->second);
         }
+    }
+    if (ptrval->GetOperandType() == BasicOperand::REG) {
+        auto reg = (RegOperand *)ptrval;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->ptrval = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
+    }
+    if (result->GetOperandType() == BasicOperand::REG) {
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
 }
 
@@ -369,14 +371,14 @@ void FunctionDeclareInstruction::ReplaceRegByMap(const std::map<int, int> &Rule)
 
 void FptosiInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
     if (value->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)value;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            value = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)value;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            value = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
 }
 
@@ -384,27 +386,27 @@ void FptosiInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
 
 void SitofpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
     if (value->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)value;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            value = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)value;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            value = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
 }
 
 void ZextInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     if (result->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)result;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            this->result = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)result;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            this->result = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
     if (value->GetOperandType() == BasicOperand::REG) {
-        auto result_reg = (RegOperand *)value;
-        if (Rule.find(result_reg->GetRegNo()) != Rule.end())
-            value = GetNewRegOperand(Rule.find(result_reg->GetRegNo())->second);
+        auto reg = (RegOperand *)value;
+        if (Rule.find(reg->GetRegNo()) != Rule.end())
+            value = GetNewRegOperand(Rule.find(reg->GetRegNo())->second);
     }
 }
 
