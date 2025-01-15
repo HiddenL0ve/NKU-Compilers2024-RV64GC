@@ -190,7 +190,7 @@ void PhiInstruction::ErasePhi(int label_id) {
     }
 }
 
-void LoadInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void LoadInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (pointer->GetOperandType() == BasicOperand::REG) {
         auto pointer_reg = (RegOperand *)pointer;
         if (Rule.find(pointer_reg->GetRegNo()) != Rule.end())
@@ -203,7 +203,7 @@ void LoadInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void StoreInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void StoreInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (pointer->GetOperandType() == BasicOperand::REG) {
         auto pointer_reg = (RegOperand *)pointer;
         if (Rule.find(pointer_reg->GetRegNo()) != Rule.end())
@@ -216,7 +216,7 @@ void StoreInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void ArithmeticInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void ArithmeticInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (op2->GetOperandType() == BasicOperand::REG) {
         auto reg = (RegOperand *)op2;
         if (Rule.find(reg->GetRegNo()) != Rule.end())
@@ -234,7 +234,7 @@ void ArithmeticInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void IcmpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void IcmpInstruction::Renamereg(const std::map<int, int> &Rule) {
      if (result->GetOperandType() == BasicOperand::REG) {
         auto reg = (RegOperand *)result;
         if (Rule.find(reg->GetRegNo()) != Rule.end())
@@ -253,7 +253,7 @@ void IcmpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
    
 }
 
-void FcmpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void FcmpInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (op1->GetOperandType() == BasicOperand::REG) {
         auto reg = (RegOperand *)op1;
         if (Rule.find(reg->GetRegNo()) != Rule.end())
@@ -272,7 +272,7 @@ void FcmpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
    
 }
 
-void PhiInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void PhiInstruction::Renamereg(const std::map<int, int> &Rule) {
     for (auto &label_pair : phi_list) {
         auto &op1 = label_pair.first;
         if (op1->GetOperandType() == BasicOperand::REG) {
@@ -294,7 +294,7 @@ void PhiInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void AllocaInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void AllocaInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (result->GetOperandType() == BasicOperand::REG) {
         auto reg = (RegOperand *)result;
         if (Rule.find(reg->GetRegNo()) != Rule.end())
@@ -302,7 +302,7 @@ void AllocaInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void BrCondInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void BrCondInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (cond->GetOperandType() == BasicOperand::REG) {
         auto cond_reg = (RegOperand *)cond;
         if (Rule.find(cond_reg->GetRegNo()) != Rule.end())
@@ -310,13 +310,13 @@ void BrCondInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void BrUncondInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {}
+void BrUncondInstruction::Renamereg(const std::map<int, int> &Rule) {}
 
-void GlobalVarDefineInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {}
+void GlobalVarDefineInstruction::Renamereg(const std::map<int, int> &Rule) {}
 
-void GlobalStringConstInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {}
+void GlobalStringConstInstruction::Renamereg(const std::map<int, int> &Rule) {}
 
-void CallInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void CallInstruction::Renamereg(const std::map<int, int> &Rule) {
     for (auto &arg_pair : args) {
         if (arg_pair.second->GetOperandType() == BasicOperand::REG) {
             auto op = (RegOperand *)arg_pair.second;
@@ -333,7 +333,7 @@ void CallInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void RetInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void RetInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (ret_val != NULL) {
         if (ret_val->GetOperandType() == BasicOperand::REG) {
             auto reg = (RegOperand *)ret_val;
@@ -345,7 +345,7 @@ void RetInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
 
 
 
-void GetElementptrInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void GetElementptrInstruction::Renamereg(const std::map<int, int> &Rule) {
     for (auto &idx_pair : indexes) {
         if (idx_pair->GetOperandType() == BasicOperand::REG) {
             auto idx_reg = (RegOperand *)idx_pair;
@@ -365,11 +365,11 @@ void GetElementptrInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void FunctionDefineInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {}
+void FunctionDefineInstruction::Renamereg(const std::map<int, int> &Rule) {}
 
-void FunctionDeclareInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {}
+void FunctionDeclareInstruction::Renamereg(const std::map<int, int> &Rule) {}
 
-void FptosiInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void FptosiInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (result->GetOperandType() == BasicOperand::REG) {
         auto reg = (RegOperand *)result;
         if (Rule.find(reg->GetRegNo()) != Rule.end())
@@ -384,7 +384,7 @@ void FptosiInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
 
 
 
-void SitofpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void SitofpInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (result->GetOperandType() == BasicOperand::REG) {
         auto reg = (RegOperand *)result;
         if (Rule.find(reg->GetRegNo()) != Rule.end())
@@ -397,7 +397,7 @@ void SitofpInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
     }
 }
 
-void ZextInstruction::ReplaceRegByMap(const std::map<int, int> &Rule) {
+void ZextInstruction::Renamereg(const std::map<int, int> &Rule) {
     if (result->GetOperandType() == BasicOperand::REG) {
         auto reg = (RegOperand *)result;
         if (Rule.find(reg->GetRegNo()) != Rule.end())

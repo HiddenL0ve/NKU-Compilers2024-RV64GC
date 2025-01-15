@@ -15,19 +15,15 @@ declare i32 @llvm.umax.i32(i32,i32)
 declare i32 @llvm.umin.i32(i32,i32)
 declare i32 @llvm.smax.i32(i32,i32)
 declare i32 @llvm.smin.i32(i32,i32)
+@a = global i32 3
+@b = global i32 5
 define i32 @main()
 {
 L0:  ;
     br label %L1
 L1:  ;
-    %r1 = add i32 5,0
-    store i32 %r1, ptr %r0
-    %r2 = load i32, ptr %r0
-    %r3 = add i32 114509,0
-    %r4 = add i32 %r2,%r3
-    call void @putint(i32 %r4)
-    %r5 = add i32 10,0
-    call void @putch(i32 %r5)
-    %r6 = add i32 0,0
-    ret i32 %r6
+    %r0 = load i32, ptr @a
+    %r1 = load i32, ptr @b
+    %r2 = add i32 %r0,%r1
+    ret i32 %r2
 }

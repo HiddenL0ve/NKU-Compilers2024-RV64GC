@@ -39,6 +39,11 @@ std::vector<Register *> MachinePhiInstruction::GetReadReg() {
     return ret;
 }
 std::vector<Register *> MachinePhiInstruction::GetWriteReg() { return std::vector<Register *>({&result}); }
+#ifdef DEBUG
+#define DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define DEBUG_PRINT(...)
+#endif
 
 void Liveness::UpdateDefUse() {
 
@@ -74,6 +79,15 @@ void Liveness::UpdateDefUse() {
         }
     }
 }
+template <size_t N> 
+std::bitset<N> BitsetUnion(const std::bitset<N> &a, const std::bitset<N> &b) {
+    return a | b;
+}
+
+template <size_t N> 
+std::bitset<N> BitsetDiff(const std::bitset<N> &a, const std::bitset<N> &b) {
+    return a & ~b;
+}
 
 void Liveness::Execute() {
     UpdateDefUse();
@@ -82,27 +96,33 @@ void Liveness::Execute() {
     IN.clear();
 
     auto mcfg = current_func->getMachineCFG();
-    bool changed = 1;
-    // 基于数据流分析的活跃变量分析
+    bool changed = true;
+
+    // 使用逆后序遍历优化收敛速度
+    auto seq_it = mcfg->getReversePostorderIterator();
+    seq_it->open();
+
     while (changed) {
-        changed = 0;
-        // 顺序遍历每个基本块
-        auto seq_it = mcfg->getSeqScanIterator();
-        seq_it->open();
+        changed = false;
         while (seq_it->hasNext()) {
             auto node = seq_it->next();
-            std::set<Register> out;
             int cur_id = node->Mblock->getLabelId();
+
+            // 计算 OUT[B]
+            auto old_out = OUT[cur_id];
+            OUT[cur_id].reset();
             for (auto succ : mcfg->GetSuccessorsByBlockId(cur_id)) {
-                out = SetUnion<Register>(out, IN[succ->Mblock->getLabelId()]);
+                OUT[cur_id] |= IN[succ->Mblock->getLabelId()];
             }
-            if (out != OUT[cur_id]) {
-                OUT[cur_id] = out;
+            if (OUT[cur_id] != old_out) {
+                changed = true;
             }
-            std::set<Register> in = SetUnion<Register>(USE[cur_id], SetDiff<Register>(OUT[cur_id], DEF[cur_id]));
-            if (in != IN[cur_id]) {
-                changed = 1;
-                IN[cur_id] = in;
+
+            // 计算 IN[B]
+            auto old_in = IN[cur_id];
+            IN[cur_id] = USE[cur_id] | (OUT[cur_id] & ~DEF[cur_id]);
+            if (IN[cur_id] != old_in) {
+                changed = true;
             }
         }
     }

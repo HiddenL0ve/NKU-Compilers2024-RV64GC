@@ -293,7 +293,7 @@ public:
     int GetOpcode() { return opcode; }    // one solution: convert to pointer of subclasses
 
     virtual void PrintIR(std::ostream &s) = 0;
-    virtual void ReplaceRegByMap(const std::map<int, int> &Rule)=0;
+    virtual void Renamereg(const std::map<int, int> &Rule)=0;
 };
 
 // load
@@ -317,7 +317,7 @@ public:
         this->pointer = pointer;
     }
     void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 // store
@@ -342,7 +342,7 @@ public:
     }
 
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 //<result>=add <ty> <op1>,<op2>
@@ -363,6 +363,7 @@ public:
     Operand GetResult() { return result; }
     void SetOperand1(Operand op) { op1 = op; }
     void SetOperand2(Operand op) { op2 = op; }
+    Operand GetResultOperand() { return result; }
     void SetResultReg(Operand op) { result = op; }
     void Setopcode(LLVMIROpcode id) { opcode = id; }
     ArithmeticInstruction(LLVMIROpcode opcode, enum LLVMType type, Operand op1, Operand op2, Operand result) {
@@ -374,7 +375,7 @@ public:
     }
 
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 //<result>=icmp <cond> <ty> <op1>,<op2>
@@ -404,7 +405,7 @@ public:
         this->result = result;
     }
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 //<result>=fcmp <cond> <ty> <op1>,<op2>
@@ -431,7 +432,7 @@ public:
         this->result = result;
     }
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 // phi syntax:
@@ -456,8 +457,11 @@ public:
     }
     virtual void PrintIR(std::ostream &s);
     void ErasePhi(int label_id);
+     enum LLVMType GetDataType() { return type; }
      void InsertPhi(Operand val, Operand label) { phi_list.push_back(std::make_pair(label, val)); }
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
+    Operand GetResultOp() { return result; }
+    decltype(phi_list) &GetPhiList() { return phi_list; }
     int GetResultRegNo() { return ((RegOperand *)result)->GetRegNo(); }
 };
 
@@ -472,6 +476,14 @@ class AllocaInstruction : public BasicInstruction {
 public:
     enum LLVMType GetDataType() { return type; }
     Operand GetResult() { return result; }
+    Operand GetResultOp() { return result; }
+    int GetAllocaSize(){
+    int sz = 1;
+    for (auto d : dims) {
+        sz *= d;
+    }
+    return sz;
+    }
     std::vector<int> GetDims() { return dims; }
     int GetResultRegNo() { return ((RegOperand *)result)->GetRegNo(); }
     AllocaInstruction(enum LLVMType dttype, Operand result) {
@@ -487,7 +499,7 @@ public:
     }
 
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 // Conditional branch
@@ -510,7 +522,7 @@ public:
     }
 
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 // Unconditional branch
@@ -526,7 +538,7 @@ public:
         this->destLabel = destLabel;
     }
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 /*
@@ -555,7 +567,7 @@ public:
         this->opcode = LLVMIROpcode::GLOBAL_VAR;
     }
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 class GlobalStringConstInstruction : public BasicInstruction {
@@ -565,7 +577,7 @@ public:
     GlobalStringConstInstruction(std::string strval, std::string strname) : str_val(strval), str_name(strname) {
         this->opcode = LLVMIROpcode::GLOBAL_STR;
     }
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
     virtual void PrintIR(std::ostream &s);
 };
 
@@ -608,13 +620,15 @@ public:
         }
     }
 
+    enum LLVMType GetRetType() { return ret_type; }
+    Operand GetResult() { return result; }
     std::string GetFunctionName() { return name; }
     void SetFunctionName(std::string new_name) { name = new_name; }
     std::vector<std::pair<enum LLVMType, Operand>> GetParameterList() { return args; }
     void push_back_Parameter(std::pair<enum LLVMType, Operand> newPara) { args.push_back(newPara); }
     void push_back_Parameter(enum LLVMType type, Operand val) { args.push_back(std::make_pair(type, val)); }
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 /*
@@ -642,7 +656,7 @@ public:
     Operand GetRetVal() { return ret_val; }
 
     virtual void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 /*
@@ -686,7 +700,7 @@ public:
     Operand GetPtrVal() { return ptrval; }
     std::vector<int> GetDims() { return dims; }
     std::vector<Operand> GetIndexes() { return indexes; }
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
     void PrintIR(std::ostream &s);
 };
 
@@ -698,18 +712,19 @@ private:
 public:
     std::vector<enum LLVMType> formals;
     std::vector<Operand> formals_reg;
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
     FunctionDefineInstruction(enum LLVMType t, std::string n) {
         return_type = t;
         Func_name = n;
     }
+    int GetFormalSize() { return formals.size(); }
     void InsertFormal(enum LLVMType t) {
         formals.push_back(t);
         formals_reg.push_back(GetNewRegOperand(formals_reg.size()));
     }
     enum LLVMType GetReturnType() { return return_type; }
     std::string GetFunctionName() { return Func_name; }
-
+   
     void PrintIR(std::ostream &s);
 };
 typedef FunctionDefineInstruction *FuncDefInstruction;
@@ -726,9 +741,10 @@ public:
         Func_name = n;
     }
     void InsertFormal(enum LLVMType t) { formals.push_back(t); }
+    int GetFormalSize() { return formals.size(); }
     enum LLVMType GetReturnType() { return return_type; }
     std::string GetFunctionName() { return Func_name; }
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
     void PrintIR(std::ostream &s);
 };
 
@@ -743,10 +759,11 @@ public:
         : result(result_receiver), value(value_for_cast) {
         this->opcode = FPTOSI;
     }
+    Operand GetResultReg() { return result; }
     Operand GetResult() { return result; }
     Operand GetSrc() { return value; }
     void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 // 这条指令目前只支持float和i32的转换，如果你需要double, i64等类型，需要自己添加更多变量
@@ -760,7 +777,8 @@ public:
         : result(result_receiver), value(value_for_cast) {
         this->opcode = SITOFP;
     }
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    Operand GetResultReg() { return result; }
+    void Renamereg(const std::map<int, int> &Rule);
     Operand GetResult() { return result; }
     Operand GetSrc() { return value; }
     void PrintIR(std::ostream &s);
@@ -782,7 +800,7 @@ public:
         this->opcode = ZEXT;
     }
     void PrintIR(std::ostream &s);
-    void ReplaceRegByMap(const std::map<int, int> &Rule);
+    void Renamereg(const std::map<int, int> &Rule);
 };
 
 std::ostream &operator<<(std::ostream &s, BasicInstruction::LLVMType type);

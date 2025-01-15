@@ -8,7 +8,7 @@ private:
     std::priority_queue<LiveInterval, std::vector<LiveInterval>, decltype(IntervalsPrioCmp) *> unalloc_queue;
     // 计算溢出权重
     double CalculateSpillWeight(LiveInterval);
-
+   void CoalesceInCurrentFunc();
 protected:
     // 寄存器分配, 返回是否溢出
     bool DoAllocInCurrentFunc();

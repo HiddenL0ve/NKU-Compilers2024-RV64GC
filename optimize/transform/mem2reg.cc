@@ -425,7 +425,7 @@ void Mem2RegPass::VarRename(CFG *C) {
                 }
             }
         }
-    }
+    } 
     // 删除标记为待删除的指令
     for (auto &[id, bb] : *C->block_map) {
         auto tmpInstructionList = bb->Instruction_list;
@@ -441,7 +441,7 @@ void Mem2RegPass::VarRename(CFG *C) {
     // 替换指令中的寄存器
     for (auto &[id, bb] : *C->block_map) {
         for (auto I : bb->Instruction_list) {
-            I->ReplaceRegByMap(mem2reg_map);
+            I->Renamereg(mem2reg_map);
         }
     }
 

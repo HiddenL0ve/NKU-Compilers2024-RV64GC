@@ -1,6 +1,6 @@
 #include "riscv64_printer.h"
 #include <assert.h>
-
+const bool print_comment = true;
 bool isMemFormatOp(int opcode) {
     return opcode == RISCV_LB || opcode == RISCV_LBU || opcode == RISCV_LH || opcode == RISCV_LHU ||
            opcode == RISCV_LW || opcode == RISCV_LWU || opcode == RISCV_LD || opcode == RISCV_FLW ||
@@ -174,7 +174,12 @@ template <> void RiscV64Printer::printAsm<MachinePhiInstruction *>(MachinePhiIns
         s << "] ";
     }
 }
-
+template <> void RiscV64Printer::printAsm<MachineCopyInstruction *>(MachineCopyInstruction *ins) {
+    printRVfield(ins->GetDst());
+    s << " = COPY ";
+    printRVfield(ins->GetSrc());
+    s << ", " << ins->GetCopyType().toString();
+}
 template <> void RiscV64Printer::printAsm<MachineBaseInstruction *>(MachineBaseInstruction *ins) {
     if (ins->arch == MachineBaseInstruction::RiscV) {
         printAsm<RiscV64Instruction *>((RiscV64Instruction *)ins);
@@ -214,7 +219,19 @@ void RiscV64Printer::emit() {
                     s << "\t";
                     printAsm((MachinePhiInstruction *)ins);
                     s << "\n";
-                } else {
+                } else if (ins->arch == MachineBaseInstruction::COMMENT) {
+                    if (::print_comment) {
+                        s << "\t";
+                        s << "# " << ((MachineComment *)ins)->GetComment();
+						s << "\n";
+                    }
+                } 
+                else if (ins->arch == MachineBaseInstruction::COPY) {
+                    s << "\t";
+                    printAsm((MachineCopyInstruction *)ins);
+					s << "\n";
+                }
+                else {
                     ERROR("Unexpected arch");
                 }
             }

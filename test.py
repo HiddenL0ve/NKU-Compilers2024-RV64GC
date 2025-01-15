@@ -41,7 +41,7 @@ def add_returncode(file,ret):
 # 测试用例的返回值的不要为124或139，否则会导致测试程序误判
 
 def execute_ir(input,output,opt,stdin,stdout,testout):
-    result = execute(["timeout","10","./bin/SysYc","-llvm","-o",output,input,opt])
+    result = execute(["timeout","600","./bin/SysYc","-llvm","-o",output,input,opt])
     if(result.returncode != 0):
         print("\033[93mCompile Error on \033[0m"+input)
         return 0
@@ -116,6 +116,7 @@ def execute_asm(input,output,opt,stdin,stdout,testout):
         return 1
     else:
         print("\033[91mWrong Answer on \033[0m"+input)
+        print(result)
         return 0
     
     

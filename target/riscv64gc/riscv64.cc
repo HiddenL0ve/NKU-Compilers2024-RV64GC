@@ -288,7 +288,30 @@ Register RiscV64Spiller::GenerateReadCode(std::list<MachineBaseInstruction *>::i
     // it为指向发生寄存器溢出的指令的迭代器
     // raw_stk_offset为该寄存器溢出到栈中的位置的偏移，相对于什么位置的偏移可以在调用时自行决定
     auto read_mid_reg = function->GetNewRegister(type.data_type, type.data_length);
-    TODO("GenerateReadSpillCode");
+    // TODO("GenerateReadSpillCode");
+    // 计算栈偏移量
+    int offset = raw_stk_offset + function->GetStackOffset();
+    // cur_block->insert(it, rvconstructor->ConstructComment("Read Spill\n"));
+    //立即数范围偏移量
+    if (offset <= 2047 && offset >= -2048) {
+        if (type == INT64) {
+            cur_block->insert(it, rvconstructor->ConstructIImm(RISCV_LD, read_mid_reg, GetPhysicalReg(RISCV_sp),
+                                                               offset));    // insert load
+        } else if (type == FLOAT64) {
+            cur_block->insert(it,
+                              rvconstructor->ConstructIImm(RISCV_FLD, read_mid_reg, GetPhysicalReg(RISCV_sp), offset));
+        }
+    } else {
+        auto imm_reg = function->GetNewRegister(INT64.data_type, INT64.data_length);
+        auto offset_mid_reg = function->GetNewRegister(INT64.data_type, INT64.data_length);
+        cur_block->insert(it, rvconstructor->ConstructUImm(RISCV_LI, imm_reg, offset));
+        cur_block->insert(it, rvconstructor->ConstructR(RISCV_ADD, offset_mid_reg, GetPhysicalReg(RISCV_sp), imm_reg));
+        if (type == INT64) {
+            cur_block->insert(it, rvconstructor->ConstructIImm(RISCV_LD, read_mid_reg, offset_mid_reg, 0));
+        } else if (type == FLOAT64) {
+            cur_block->insert(it, rvconstructor->ConstructIImm(RISCV_FLD, read_mid_reg, offset_mid_reg, 0));
+        }
+    }
     return read_mid_reg;
 }
 
@@ -296,6 +319,258 @@ Register RiscV64Spiller::GenerateReadCode(std::list<MachineBaseInstruction *>::i
 Register RiscV64Spiller::GenerateWriteCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset,
                                            MachineDataType type) {
     auto write_mid_reg = function->GetNewRegister(type.data_type, type.data_length);
-    TODO("GenerateWriteSpillCode");
+    int offset = raw_stk_offset + function->GetStackOffset();
+    ++it;
+    // cur_block->insert(it, rvconstructor->ConstructComment("Write Spill\n"));
+    if (offset <= 2047 && offset >= -2048) {
+        if (type == INT64) {
+            cur_block->insert(it, rvconstructor->ConstructSImm(RISCV_SD, write_mid_reg, GetPhysicalReg(RISCV_sp),
+                                                               offset));    // insert store
+        } else if (type == FLOAT64) {
+            cur_block->insert(it, rvconstructor->ConstructSImm(RISCV_FSD, write_mid_reg, GetPhysicalReg(RISCV_sp),
+                                                               offset));    // insert store
+        }
+    } else {
+        auto imm_reg = function->GetNewRegister(INT64.data_type, INT64.data_length);
+        auto offset_mid_reg = function->GetNewRegister(INT64.data_type, INT64.data_length);
+        cur_block->insert(it, rvconstructor->ConstructUImm(RISCV_LI, imm_reg, offset));
+        cur_block->insert(it, rvconstructor->ConstructR(RISCV_ADD, offset_mid_reg, GetPhysicalReg(RISCV_sp), imm_reg));
+        if (type == INT64) {
+            cur_block->insert(it, rvconstructor->ConstructSImm(RISCV_SD, write_mid_reg, offset_mid_reg, 0));
+        } else if (type == FLOAT64) {
+            cur_block->insert(it, rvconstructor->ConstructSImm(RISCV_FSD, write_mid_reg, offset_mid_reg, 0));
+        }
+    }
+    --it;
     return write_mid_reg;
+}
+void RiscV64Spiller::GenerateCopyToStackCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset,
+                                             Register reg, MachineDataType type) {
+    int offset = raw_stk_offset + function->GetStackOffset();
+    // cur_block->insert(it, rvconstructor->ConstructComment("Write Spill\n"));
+    if (offset <= 2047 && offset >= -2048) {
+        if (type == INT64) {
+            cur_block->insert(
+            it, rvconstructor->ConstructSImm(RISCV_SD, reg, GetPhysicalReg(RISCV_sp), offset));    // insert store
+        } else if (type == FLOAT64) {
+            cur_block->insert(
+            it, rvconstructor->ConstructSImm(RISCV_FSD, reg, GetPhysicalReg(RISCV_sp), offset));    // insert store
+        }
+    } else {
+        auto imm_reg = function->GetNewRegister(INT64.data_type, INT64.data_length);
+        auto offset_mid_reg = function->GetNewRegister(INT64.data_type, INT64.data_length);
+        cur_block->insert(it, rvconstructor->ConstructUImm(RISCV_LI, imm_reg, offset));
+        cur_block->insert(it, rvconstructor->ConstructR(RISCV_ADD, offset_mid_reg, GetPhysicalReg(RISCV_sp), imm_reg));
+        if (type == INT64) {
+            cur_block->insert(it, rvconstructor->ConstructSImm(RISCV_SD, reg, offset_mid_reg, 0));
+        } else if (type == FLOAT64) {
+            cur_block->insert(it, rvconstructor->ConstructSImm(RISCV_FSD, reg, offset_mid_reg, 0));
+        }
+    }
+}
+void RiscV64Spiller::GenerateCopyFromStackCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset,
+                                               Register reg, MachineDataType type) {
+    int offset = raw_stk_offset + function->GetStackOffset();
+    // cur_block->insert(it, rvconstructor->ConstructComment("Read Spill\n"));
+    if (offset <= 2047 && offset >= -2048) {
+        if (type == INT64) {
+            cur_block->insert(
+            it, rvconstructor->ConstructIImm(RISCV_LD, reg, GetPhysicalReg(RISCV_sp), offset));    // insert load
+        } else if (type == FLOAT64) {
+            cur_block->insert(
+            it, rvconstructor->ConstructIImm(RISCV_FLD, reg, GetPhysicalReg(RISCV_sp), offset));    // insert load
+        }
+    } else {
+        auto imm_reg = function->GetNewRegister(INT64.data_type, INT64.data_length);
+        auto offset_mid_reg = function->GetNewRegister(INT64.data_type, INT64.data_length);
+        cur_block->insert(it, rvconstructor->ConstructUImm(RISCV_LI, imm_reg, offset));
+        cur_block->insert(it, rvconstructor->ConstructR(RISCV_ADD, offset_mid_reg, GetPhysicalReg(RISCV_sp), imm_reg));
+        if (type == INT64) {
+            cur_block->insert(it, rvconstructor->ConstructIImm(RISCV_LD, reg, offset_mid_reg, 0));
+        } else if (type == FLOAT64) {
+            cur_block->insert(it, rvconstructor->ConstructIImm(RISCV_FLD, reg, offset_mid_reg, 0));
+        }
+    }
+}
+std::vector<int> RiscV64Block::getAllBranch() {
+    auto it = --instructions.end();
+    // auto jal_pos = it;
+    std::vector<int> ret;
+    if (instructions.empty()) {
+        return ret;
+    }
+    for (auto it = --instructions.end(); it != --instructions.begin(); --it) {
+        if ((*it)->arch == MachineBaseInstruction::COMMENT || (*it)->arch == MachineBaseInstruction::PHI) {
+            continue;
+        }
+        if ((*it)->arch != MachineBaseInstruction::RiscV) {
+            // return jal_pos;
+            return ret;
+        }
+        // Assert((*it)->arch == MachineBaseInstruction::RiscV);
+        auto rvlast = (RiscV64Instruction *)(*it);
+        if (rvlast->getOpcode() == RISCV_JALR) {
+            return ret;
+        }
+        if (rvlast->getOpcode() == RISCV_JAL) {
+            // jal_pos = it;
+            ret.push_back(rvlast->getLabel().jmp_label_id);
+            continue;
+        }
+        if (OpTable[rvlast->getOpcode()].ins_formattype == RvOpInfo::B_type) {
+            // return it;
+            ret.push_back(rvlast->getLabel().jmp_label_id);
+            return ret;
+        } else {
+            // return jal_pos;
+            return ret;
+        }
+    }
+    return ret;
+}
+static int GetReverseBranchOp(int op) {
+    Assert(OpTable[op].ins_formattype == RvOpInfo::B_type);
+    switch (op) {
+    case RISCV_BEQ:
+        return RISCV_BNE;
+    case RISCV_BNE:
+        return RISCV_BEQ;
+
+    case RISCV_BLT:
+        return RISCV_BGE;
+    case RISCV_BGE:
+        return RISCV_BLT;
+
+    case RISCV_BLTU:
+        return RISCV_BGEU;
+    case RISCV_BGEU:
+        return RISCV_BLTU;
+
+    case RISCV_BGT:
+        return RISCV_BLE;
+    case RISCV_BLE:
+        return RISCV_BGT;
+
+    case RISCV_BGTU:
+        return RISCV_BLEU;
+    case RISCV_BLEU:
+        return RISCV_BGTU;
+    }
+    ERROR("Unknown Br Opcode");
+    return 0;
+}
+
+void RiscV64Block::ReverseBranch() {
+    auto it = --instructions.end();
+    auto jal_pos = it;
+    for (; it != instructions.begin(); --it) {
+        if ((*it)->arch == MachineBaseInstruction::COMMENT || (*it)->arch == MachineBaseInstruction::PHI) {
+            continue;
+        }
+        if ((*it)->arch != MachineBaseInstruction::RiscV) {
+            return;
+        }
+        // Assert((*it)->arch == MachineBaseInstruction::RiscV);
+        auto rvlast = (RiscV64Instruction *)(*it);
+        if (rvlast->getOpcode() == RISCV_JALR) {
+            return;
+        }
+        if (rvlast->getOpcode() == RISCV_JAL) {
+            jal_pos = it;
+            continue;
+        }
+        if (OpTable[rvlast->getOpcode()].ins_formattype == RvOpInfo::B_type) {
+            auto old_label = rvlast->getLabel();
+            rvlast->setLabel(RiscVLabel(old_label.seq_label_id, old_label.jmp_label_id));
+            rvlast->setOpcode(GetReverseBranchOp(rvlast->getOpcode()), rvlast->getUseLabel());
+            auto jal = (RiscV64Instruction *)(*jal_pos);
+            auto old_jallabel = jal->getLabel();
+            jal->setLabel(RiscVLabel(old_label.jmp_label_id));
+            return;
+        } else {
+            return;
+        }
+    }
+}
+std::list<MachineBaseInstruction *>::iterator RiscV64Block::getInsertBeforeBrIt() {
+    auto it = --instructions.end();
+    auto jal_pos = it;
+    if (instructions.empty()) {
+        return instructions.end();
+    }
+    for (auto it = --instructions.end(); it != --instructions.begin(); --it) {
+        if ((*it)->arch == MachineBaseInstruction::COMMENT || (*it)->arch == MachineBaseInstruction::PHI) {
+            continue;
+        }
+        if ((*it)->arch != MachineBaseInstruction::RiscV) {
+            return jal_pos;
+        }
+        // Assert((*it)->arch == MachineBaseInstruction::RiscV);
+        auto rvlast = (RiscV64Instruction *)(*it);
+        if (rvlast->getOpcode() == RISCV_JALR) {
+            return it;
+        }
+        if (rvlast->getOpcode() == RISCV_JAL) {
+            jal_pos = it;
+            continue;
+        }
+        if (OpTable[rvlast->getOpcode()].ins_formattype == RvOpInfo::B_type) {
+            return it;
+        } else {
+            return jal_pos;
+        }
+    }
+    return it;
+}
+void RiscV64Function::MoveAllPredecessorsBranchTargetToNewBlock(int original_target, int new_target) {
+    TODO("Branch Target Set");
+}
+void RiscV64Function::MoveOnePredecessorBranchTargetToNewBlock(int pre, int original_target, int new_target) {
+    // Log("%d %d %d",pre,original_target,new_target);
+    auto preblock = mcfg->GetNodeByBlockId(pre)->Mblock;
+    bool jal_gotcha = false;
+    for (auto it = preblock->ReverseBegin(); it != preblock->ReverseEnd(); ++it) {
+        auto ins = *it;
+        if (ins->arch == MachineBaseInstruction::COMMENT || ins->arch == MachineBaseInstruction::PHI) {
+            continue;
+        }
+        if (ins->arch == MachineBaseInstruction::COPY) {
+            if (jal_gotcha) {
+                break;
+            }
+            continue;
+        }
+        auto rvins = (RiscV64Instruction *)ins;
+        if (rvins->getOpcode() == RISCV_JALR) {
+            break;
+        }
+        if (rvins->getOpcode() == RISCV_JAL) {
+            // Log("%d %d",preblock->getLabelId(),rvins->getLabel().jmp_label_id);
+            if (rvins->getLabel().jmp_label_id == original_target) {
+                rvins->setLabel(RiscVLabel(new_target));
+            }
+            jal_gotcha = true;
+            continue;
+        }
+        if (OpTable[rvins->getOpcode()].ins_formattype == RvOpInfo::B_type) {
+            // Log("%d %d",preblock->getLabelId(),rvins->getLabel().jmp_label_id);
+            if (rvins->getLabel().jmp_label_id == original_target) {
+                rvins->setLabel(RiscVLabel(new_target, rvins->getLabel().seq_label_id));
+            } else if (rvins->getLabel().seq_label_id == original_target) {
+                rvins->setLabel(RiscVLabel(rvins->getLabel().jmp_label_id, new_target));
+            }
+            break;
+        } else if (jal_gotcha) {
+            break;
+        }
+    }
+}
+void RiscV64Function::YankBranchInstructionToNewBlock(int original_block_id, int new_block) {
+    TODO("Branch Target Set");
+}
+void RiscV64Function::AppendUncondBranchInstructionToNewBlock(int new_block, int br_target) {
+    auto newblock = mcfg->GetNodeByBlockId(new_block)->Mblock;
+    rvconstructor->DisableSchedule();
+    newblock->push_back(rvconstructor->ConstructJLabel(RISCV_JAL, GetPhysicalReg(RISCV_x0), RiscVLabel(br_target)));
+    rvconstructor->EnableSchedule();
 }

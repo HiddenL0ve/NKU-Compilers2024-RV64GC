@@ -29,7 +29,7 @@ void DominatorTree::BuildDominatorTree(bool reverse) {
     }
 
     int num = C->max_label + 1;
-    printf("%d", C->max_label + 1);
+    //("%d", C->max_label + 1);
     dom_tree.clear();
     dom_tree.resize(num);//一个存储每个节点的支配树的容器，dom_tree[i] 存储直接支配节点 i 。
     idom.clear();
