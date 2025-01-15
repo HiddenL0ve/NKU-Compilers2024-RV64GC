@@ -1,22 +1,19 @@
 #include "riscv64_lowerframe.h"
 
-/*
-    假设IR中的函数定义为f(i32 %r0, i32 %r1)
-    则parameters应该存放两个虚拟寄存器%0,%1
-
-    在LowerFrame后应当为
-    add %0,a0,x0  (%0 <- a0)
-    add %1,a1,x0  (%1 <- a1)
-
-    对于浮点寄存器按照类似的方法处理即可
-*/
+/**
+ * 执行LowerFrame操作，主要用于在函数入口插入参数获取的相关指令。
+ */
 void RiscV64LowerFrame::Execute() {
-    // 在每个函数的开头处插入获取参数的指令
+    // 遍历所有函数
     for (auto func : unit->functions) {
         current_func = func;
+
+        // 遍历函数的所有基本块
         for (auto &b : func->blocks) {
             cur_block = b;
-            if (b->getLabelId() == 0) {    // 函数入口，需要插入获取参数的指令
+
+            // 处理函数入口
+            if (b->getLabelId() == 0) { 
                 int i32_cnt = 0;
                 int f32_cnt = 0;
                 int para_offset = 0;

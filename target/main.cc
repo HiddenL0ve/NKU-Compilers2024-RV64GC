@@ -12,7 +12,9 @@
 #include "./riscv64gc/instruction_select/riscv64_instSelect.h"
 #include "./riscv64gc/instruction_select/riscv64_lowerframe.h"
 #include "./riscv64gc/instruction_select/riscv64_lowercopy.h"
+#include "./riscv64gc/instruction_select/riscv64_lowercopy.h"
 #include "./riscv64gc/riscv64.h"
+#include "./riscv64gc/instruction_select/riscv64_lowerimm.h"
 #include "./riscv64gc/instruction_select/riscv64_lowerimm.h"
 #include <assert.h>
 #include <cstdio>
@@ -165,6 +167,7 @@ int main(int argc, char **argv) {
 
     optimize_flag = (argc == 6 && (strcmp(argv[optimize_tag], "-O1") == 0));
     if (optimize_flag) {
+    if (optimize_flag) {
         DomAnalysis dom(&llvmIR);
         
         dom.Execute();   // 完成支配树建立后，取消该行代码的注释
@@ -194,7 +197,11 @@ int main(int argc, char **argv) {
         FastLinearScan(m_unit, &regs, &spiller).Execute();
         
         RiscV64LowerCopy(m_unit).Execute();
+        
+        RiscV64LowerCopy(m_unit).Execute();
         RiscV64LowerStack(m_unit).Execute();
+
+        
 
         
         RiscV64Printer(fout, m_unit).emit();

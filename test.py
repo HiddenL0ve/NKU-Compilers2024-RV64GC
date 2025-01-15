@@ -42,6 +42,7 @@ def add_returncode(file,ret):
 
 def execute_ir(input,output,opt,stdin,stdout,testout):
     result = execute(["timeout","600","./bin/SysYc","-llvm","-o",output,input,opt])
+    result = execute(["timeout","600","./bin/SysYc","-llvm","-o",output,input,opt])
     if(result.returncode != 0):
         print("\033[93mCompile Error on \033[0m"+input)
         return 0

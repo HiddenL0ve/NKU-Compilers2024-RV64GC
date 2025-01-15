@@ -11,6 +11,16 @@ Register RiscV64Selector::GetllvmReg(int ir_reg, MachineDataType type) {
 Register RiscV64Selector::GetNewReg(MachineDataType type, bool save_across_call) {
     return cur_func->GetNewRegister(type.data_type, type.data_length);
 }
+Register RiscV64Selector::GetllvmReg(int ir_reg, MachineDataType type) {
+    if (llvm_rv_regtable.find(ir_reg) == llvm_rv_regtable.end()) {
+        llvm_rv_regtable[ir_reg] = GetNewReg(type);
+    }
+    Assert(llvm_rv_regtable[ir_reg].type == type);
+    return llvm_rv_regtable[ir_reg];
+}
+Register RiscV64Selector::GetNewReg(MachineDataType type, bool save_across_call) {
+    return cur_func->GetNewRegister(type.data_type, type.data_length);
+}
 template <> void RiscV64Selector::ConvertAndAppend<LoadInstruction *>(LoadInstruction *ins) {
     if(ins->GetPointer()->GetOperandType()==BasicOperand::REG){
     auto ptr_op = (RegOperand *)ins->GetPointer();
@@ -933,6 +943,12 @@ template <> void RiscV64Selector::ConvertAndAppend<BrUncondInstruction *>(BrUnco
     auto jal_instr = rvconstructor->ConstructJLabel(RISCV_JAL, GetPhysicalReg(RISCV_x0), dest_label);
 
     cur_block->push_back(jal_instr);
+    rvconstructor->DisableSchedule();
+    auto dest_label = RiscVLabel(((LabelOperand *)ins->GetDestLabel())->GetLabelNo());
+
+    auto jal_instr = rvconstructor->ConstructJLabel(RISCV_JAL, GetPhysicalReg(RISCV_x0), dest_label);
+
+    cur_block->push_back(jal_instr);
 }
 
 template <> void RiscV64Selector::ConvertAndAppend<CallInstruction *>(CallInstruction *ins) {
@@ -1235,14 +1251,19 @@ template <> void RiscV64Selector::ConvertAndAppend<RetInstruction *>(RetInstruct
         }
     }
 
+    // 构造返回指令
     auto ret_instr = rvconstructor->ConstructIImm(RISCV_JALR, GetPhysicalReg(RISCV_x0), GetPhysicalReg(RISCV_ra), 0);
-    if (ins->GetType() == BasicInstruction::I32) {
-        ret_instr->setRetType(1);
-    } else if (ins->GetType() == BasicInstruction::FLOAT32) {
-        ret_instr->setRetType(2);
+
+    // 设置返回类型
+    if (ins->GetType() == BasicInstruction::LLVMType::I32) {
+        ret_instr->setRetType(1); // 整数类型返回
+    } else if (ins->GetType() == BasicInstruction::LLVMType::FLOAT32) {
+        ret_instr->setRetType(2); // 浮点类型返回
     } else {
-        ret_instr->setRetType(0);
+        ret_instr->setRetType(0); // 默认类型返回
     }
+
+    // 将返回指令添加到当前块
     cur_block->push_back(ret_instr);
 }
 
@@ -1774,29 +1795,28 @@ template <> void RiscV64Selector::ConvertAndAppend<Instruction>(Instruction inst
         ERROR("Unknown LLVM IR instruction");
     }
 }
-
+// Reference: https://github.com/yuhuifishash/NKU-Compilers2024-RV64GC.git/target/riscv64gc/instruction_select/riscv64_instSelect.cc line 1778-1852
 void RiscV64Selector::SelectInstructionAndBuildCFG() {
-    // 与中间代码生成一样, 如果你完全无从下手, 可以先看看输出是怎么写的
-    // 即riscv64gc/instruction_print/*  common/machine_passes/machine_printer.h
-
-    // 指令选择除了一些函数调用约定必须遵守的情况需要物理寄存器，其余情况必须均为虚拟寄存器
+    // 将全局定义从中间表示复制到目标
     dest->global_def = IR->global_def;
+
     // 遍历每个LLVM IR函数
-    for (auto [defI,cfg] : IR->llvm_cfg) {
-        if(cfg == nullptr){
+    for (auto &[defI, cfg] : IR->llvm_cfg) {
+        if (!cfg) {
             ERROR("LLVMIR CFG is Empty, you should implement BuildCFG in MidEnd first");
         }
-        std::string name = cfg->function_def->GetFunctionName();
 
-        cur_func = new RiscV64Function(name);
+        // 初始化函数
+        std::string function_name = cfg->function_def->GetFunctionName();
+        cur_func = new RiscV64Function(function_name);
         cur_func->SetParent(dest);
-        // 你可以使用cur_func->GetNewRegister来获取新的虚拟寄存器
         dest->functions.push_back(cur_func);
 
+        // 初始化Machine CFG
         auto cur_mcfg = new MachineCFG;
         cur_func->SetMachineCFG(cur_mcfg);
 
-        // 清空指令选择状态(可能需要自行添加初始化操作)
+        // 清空指令选择状态
         ClearFunctionSelectState();
 
         // TODO: 添加函数参数(推荐先阅读一下riscv64_lowerframe.cc中的代码和注释)
@@ -1828,23 +1848,22 @@ void RiscV64Selector::SelectInstructionAndBuildCFG() {
             cur_block->setParent(cur_func);
             cur_func->blocks.push_back(cur_block);
 
-            // 指令选择主要函数, 请注意指令选择时需要维护变量cur_offset
             for (auto instruction : block->Instruction_list) {
-                // Log("Selecting Instruction");
                 ConvertAndAppend<Instruction>(instruction);
             }
         }
 
-        // RISCV 8字节对齐（）
+        // 对齐栈帧到8字节边界
         if (cur_offset % 8 != 0) {
             cur_offset = ((cur_offset + 7) / 8) * 8;
         }
+
+        // 设置函数的堆栈大小
         cur_func->SetStackSize(cur_offset + cur_func->GetParaSize());
 
-        // 控制流图连边
-        for (int i = 0; i < cfg->G.size(); i++) {
-            const auto &arcs = cfg->G[i];
-            for (auto arc : arcs) {
+        // 构建控制流图边
+        for (size_t i = 0; i < cfg->G.size(); i++) {
+            for (const auto &arc : cfg->G[i]) {
                 cur_mcfg->MakeEdge(i, arc->block_id);
             }
         }

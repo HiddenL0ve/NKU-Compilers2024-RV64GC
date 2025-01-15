@@ -1,7 +1,7 @@
 #include "physical_register.h"
+// Reference: https://github.com/yuhuifishash/NKU-Compilers2024-RV64GC.git/target/common/machine_passes/register_alloc/physical_register.cc line 2-36
 bool PhysicalRegistersAllocTools::OccupyReg(int phy_id, LiveInterval interval) {
-    // 你需要保证interval不与phy_id已有的冲突
-    // 或者增加判断分配失败返回false的代码
+
     phy_occupied[phy_id].push_back(interval);
     return true;
 }
@@ -153,7 +153,7 @@ int PhysicalRegistersAllocTools::getIdleMem(LiveInterval interval) {
 }
 
 int PhysicalRegistersAllocTools::swapRegspill(int p_reg1, LiveInterval interval1, int offset_spill2, int size,
-                                              LiveInterval interval2) {
+                                    LiveInterval interval2) {
 
     // TODO("swapRegspill");
     // 1. 释放寄存器p_reg1

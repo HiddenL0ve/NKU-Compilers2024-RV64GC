@@ -58,6 +58,7 @@ void MachineCFG::RemoveEdge(int edg_begin, int edg_end) {
 }
 
 Register MachineFunction::GetNewRegister(int regtype, int reglength, bool save_across_call) {
+Register MachineFunction::GetNewRegister(int regtype, int reglength, bool save_across_call) {
     static int new_regno = 0;
     printf("%d",new_regno);
     Register new_reg;

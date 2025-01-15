@@ -124,6 +124,15 @@ public:
         }
         PRINT("\n");
     }
+    void Print() {
+        PRINT("%d %d ", reg.is_virtual, reg.reg_no);
+        // std::cerr<<reg.is_virtual<<" "<<reg.reg_no<<" ";
+        for (auto seg : segments) {
+            PRINT("[%d,%d) ", seg.begin, seg.end);
+            // std::cerr<<"["<<seg.begin<<","<<seg.end<<") ";
+        }
+        PRINT("\n");
+    }
     // 可以直接 for(auto segment : liveinterval)
     decltype(segments.begin()) begin() { return segments.begin(); }
     decltype(segments.end()) end() { return segments.end(); }
