@@ -123,6 +123,9 @@ NodeAttribute BinaryOperation(NodeAttribute left, NodeAttribute right, std::stri
     // if(result.V.ConstTag){
     //     error_msgs.push_back("Not a const " + std::to_string(line_number) + "\n");
     // }
+    // if(result.V.ConstTag){
+    //     error_msgs.push_back("Not a const " + std::to_string(line_number) + "\n");
+    // }
     if (commonType == Type::INT) {
         if (op == "+") {
             result.V.val.IntVal = left.V.val.IntVal + right.V.val.IntVal;
@@ -428,6 +431,11 @@ void Lval::TypeCheck() {    // 变量作为左值使用时的检查
     VarAttribute v1 = semant_table.symbol_table.lookup_val(name);
     if (val.type == Type::VOID) {    // 不在局部变量表中，尝试在全局变量表中查找
         if (semant_table.GlobalTable.find(name) != semant_table.GlobalTable.end()) {
+            if(val.type==Type::INT){
+                attribute.V.val.IntVal=val.IntInitVals[0];
+            } else if(val.type==Type::FLOAT){
+                attribute.V.val.FloatVal=val.FloatInitVals[0];
+            }
             val = semant_table.GlobalTable[name];
             if (val.type == Type::INT) {
                 attribute.V.val.IntVal = val.IntInitVals[0];
@@ -443,7 +451,8 @@ void Lval::TypeCheck() {    // 变量作为左值使用时的检查
 
             return;
         }
-    } else {
+    } 
+    else {
         scope = semant_table.symbol_table.lookup_scope(name);
     }
 
@@ -497,6 +506,7 @@ void Lval::TypeCheck() {    // 变量作为左值使用时的检查
     } else {
         error_msgs.push_back("Array is unmatched in line " + std::to_string(line_number) + "\n");    // 数组不匹配，报错
     }
+}
 }
 
 void FuncRParams::TypeCheck() {}
