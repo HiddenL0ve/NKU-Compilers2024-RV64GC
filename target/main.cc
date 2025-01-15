@@ -11,8 +11,9 @@
 #include "./riscv64gc/instruction_print/riscv64_printer.h"
 #include "./riscv64gc/instruction_select/riscv64_instSelect.h"
 #include "./riscv64gc/instruction_select/riscv64_lowerframe.h"
+#include "./riscv64gc/instruction_select/riscv64_lowercopy.h"
 #include "./riscv64gc/riscv64.h"
-
+#include "./riscv64gc/instruction_select/riscv64_lowerimm.h"
 #include <assert.h>
 #include <cstdio>
 #include <cstring>
@@ -163,7 +164,7 @@ int main(int argc, char **argv) {
     // 消除不可达基本块和指令在不开启O1的情况也需要进行，原因是这属于基本优化
 
     optimize_flag = (argc == 6 && (strcmp(argv[optimize_tag], "-O1") == 0));
-    if (1) {
+    if (optimize_flag) {
         DomAnalysis dom(&llvmIR);
         
         dom.Execute();   // 完成支配树建立后，取消该行代码的注释
@@ -185,9 +186,17 @@ int main(int argc, char **argv) {
         RiscV64Selector(m_unit, &llvmIR).SelectInstructionAndBuildCFG();
         RiscV64LowerFrame(m_unit).Execute();
 
+       
+        MachinePhiDestruction(m_unit).Execute();
+        RiscV64LowerFImmCopy(m_unit).Execute();
+        RiscV64LowerIImmCopy(m_unit).Execute();
+
         FastLinearScan(m_unit, &regs, &spiller).Execute();
+        
+        RiscV64LowerCopy(m_unit).Execute();
         RiscV64LowerStack(m_unit).Execute();
 
+        
         RiscV64Printer(fout, m_unit).emit();
     }
     if (strcmp(argv[step_tag], "-select") == 0) {

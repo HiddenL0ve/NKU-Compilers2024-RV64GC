@@ -354,11 +354,14 @@ j L2
 */
 struct RiscVLabel {
     int jmp_label_id = 0; // 该id为跳转的基本块编号
+    int seq_label_id=0;
     bool is_data_address = false; // 是否为数据段标签
     std::string name;
     bool is_hi; // 对应%hi(name) 和 %lo(name)
     RiscVLabel() = default;
+    RiscVLabel(int jmp, int seq) {jmp_label_id=jmp;seq_label_id=seq;}
     RiscVLabel(std::string name, bool is_hi):name(name), is_hi(is_hi) { this->is_data_address = true; }
+    RiscVLabel(int jmp){jmp_label_id=jmp;}
     // 添加一些你想用的构造函数
 };
 
@@ -469,13 +472,14 @@ public:
 
 class RiscV64InstructionConstructor {
     static RiscV64InstructionConstructor instance;
-
+    bool no_schedule;
     RiscV64InstructionConstructor() {}
 
 public:
     static RiscV64InstructionConstructor *GetConstructor() { return &instance; }
     // 函数命名方法大部分与RISC-V指令格式一致
-
+    void DisableSchedule() { no_schedule = true; }
+    void EnableSchedule() { no_schedule = false; }
     // example: addw Rd, Rs1, Rs2 
     RiscV64Instruction *ConstructR(int op, Register Rd, Register Rs1, Register Rs2) {
         RiscV64Instruction *ret = new RiscV64Instruction();
@@ -484,6 +488,7 @@ public:
         ret->setRd(Rd);
         ret->setRs1(Rs1);
         ret->setRs2(Rs2);
+         ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: fmv.x.w Rd, Rs1
@@ -493,6 +498,7 @@ public:
         Assert(OpTable[op].ins_formattype == RvOpInfo::R2_type);
         ret->setRd(Rd);
         ret->setRs1(Rs1);
+        ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: fmadd.s Rd, Rs1, Rs2, Rs3
@@ -504,6 +510,7 @@ public:
         ret->setRs1(Rs1);
         ret->setRs2(Rs2);
         ret->setRs3(Rs3);
+         ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: lw Rd, imm(Rs1) 
@@ -515,6 +522,7 @@ public:
         ret->setRd(Rd);
         ret->setRs1(Rs1);
         ret->setImm(imm);
+         ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: lw Rd label(Rs1)   =>  lw Rd %lo(label_name)(Rs1)
@@ -526,6 +534,7 @@ public:
         ret->setRd(Rd);
         ret->setRs1(Rs1);
         ret->setLabel(label);
+         ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: sw value imm(ptr)
@@ -536,6 +545,7 @@ public:
         ret->setRs1(value);
         ret->setRs2(ptr);
         ret->setImm(imm);
+        ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: sw value label(ptr)  =>  sw value %lo(label_name)(ptr)
@@ -546,6 +556,7 @@ public:
         ret->setRs1(value);
         ret->setRs2(ptr);
         ret->setLabel(label);
+        ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: b(cond) Rs1, Rs2,label  =>  bne Rs1, Rs2, .L3(标签具体如何输出见riscv64_printasm.cc)
@@ -556,6 +567,7 @@ public:
         ret->setRs1(Rs1);
         ret->setRs2(Rs2);
         ret->setLabel(label);
+        ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: lui Rd, imm
@@ -565,6 +577,7 @@ public:
         Assert(OpTable[op].ins_formattype == RvOpInfo::U_type);
         ret->setRd(Rd);
         ret->setImm(imm);
+        ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: lui Rd, %hi(label_name)
@@ -574,6 +587,7 @@ public:
         Assert(OpTable[op].ins_formattype == RvOpInfo::U_type);
         ret->setRd(Rd);
         ret->setLabel(label);
+        ret->SetNoSchedule(no_schedule);
         return ret;
     }
     // example: jal rd, label  =>  jal a0, .L4
@@ -583,8 +597,47 @@ public:
         Assert(OpTable[op].ins_formattype == RvOpInfo::J_type);
         ret->setRd(rd);
         ret->setLabel(label);
+        ret->SetNoSchedule(no_schedule);
         return ret;
     }
+
+    MachineCopyInstruction *ConstructCopyReg(Register dst, Register src, MachineDataType type) {
+        Assert(dst.type == src.type);
+        Assert(dst.type == type);
+
+        MachineCopyInstruction *ret =
+        new MachineCopyInstruction(new MachineRegister(src), new MachineRegister(dst), type);
+        ret->SetNoSchedule(no_schedule);
+        return ret;
+    }
+    MachineCopyInstruction *ConstructCopyRegImmI(Register dst, int src, MachineDataType type) {
+        Assert(dst.type == type);
+        Assert(type.data_type == MachineDataType::INT);
+
+        MachineCopyInstruction *ret =
+        new MachineCopyInstruction(new MachineImmediateInt(src), new MachineRegister(dst), type);
+        ret->SetNoSchedule(no_schedule);
+        return ret;
+    }
+    MachineCopyInstruction *ConstructCopyRegImmF(Register dst, float src, MachineDataType type) {
+        Assert(dst.type == type);
+        Assert(type.data_type == MachineDataType::FLOAT);
+
+        MachineCopyInstruction *ret =
+        new MachineCopyInstruction(new MachineImmediateFloat(src), new MachineRegister(dst), type);
+        ret->SetNoSchedule(no_schedule);
+        return ret;
+    }
+    MachineCopyInstruction *ConstructCopyRegImmF64(Register dst, double src, MachineDataType type) {
+        Assert(dst.type == type);
+        Assert(type.data_type == MachineDataType::FLOAT);
+
+        MachineCopyInstruction *ret =
+        new MachineCopyInstruction(new MachineImmediateDouble(src), new MachineRegister(dst), type);
+        ret->SetNoSchedule(no_schedule);
+        return ret;
+    }
+
     // example: call funcname  
     // iregnum 和 fregnum 表示该函数调用会分别用几个物理寄存器和浮点寄存器传参
     // iregnum 和 fregnum 的作用为精确确定call会读取哪些寄存器 (具体见GetCall_typeWritereg()函数)
@@ -597,9 +650,14 @@ public:
         // ret->setRd(GetPhysicalReg(phy_rd));
         ret->setCalliregNum(iregnum);
         ret->setCallfregNum(fregnum);
+         ret->SetNoSchedule(no_schedule);
         ret->setLabel(RiscVLabel(funcname, false));
         return ret;
     }
+
+#ifdef ENABLE_COMMENT
+    MachineComment *ConstructComment(std::string comment) { return new MachineComment(comment); }
+#endif
 
 };
 extern RiscV64InstructionConstructor *rvconstructor;
@@ -611,7 +669,11 @@ class RiscV64Unit;
 class RiscV64Block : public MachineBlock {
 public:
     RiscV64Block(int id) : MachineBlock(id) {}
+    std::list<MachineBaseInstruction *>::iterator getInsertBeforeBrIt();
+    std::vector<int> getAllBranch();    // [0]-false, [1]-true
+     void ReverseBranch();
 };
+
 
 class RiscV64BlockFactory : public MachineBlockFactory {
 public:
@@ -621,11 +683,36 @@ public:
 class RiscV64Function : public MachineFunction {
 public:
     RiscV64Function(std::string name) : MachineFunction(name, new RiscV64BlockFactory()) {}
-
+    
 private:
     // TODO: add your own members here
+    std::vector<RiscV64Instruction *> stackparameterlist;
+    std::vector<RiscV64Instruction *> allocalist;
+protected:
+    void InitializeNewVirtualRegister(int vregno);
+    void MoveAllPredecessorsBranchTargetToNewBlock(int original_target, int new_target);
+    void MoveOnePredecessorBranchTargetToNewBlock(int pre, int original_target, int new_target);
+    void YankBranchInstructionToNewBlock(int original_block_id, int new_block);
+    void AppendUncondBranchInstructionToNewBlock(int new_block, int br_target);
+
 public:
     // TODO: add your own members here
+    //void AddAllocaIns(RiscV64Instruction *ins) { allocalist.push_back(ins); }
+    void AddStackSize(int sz) {
+        int pre_sz = GetStackSize();
+        stack_sz += sz;
+        int after_sz = GetStackSize();
+        for (auto ins : stackparameterlist) {
+            ins->setImm(ins->getImm() - pre_sz + after_sz);
+        }
+    }
+    void AddParameterSize(int sz) {
+        for (auto ins : allocalist) {
+            ins->setImm(ins->getImm() + sz);
+        }
+    }
+    void AddStkParaIns(RiscV64Instruction *ins) { stackparameterlist.push_back(ins); }
+    void AddAllocaIns(RiscV64Instruction *ins) { allocalist.push_back(ins); }
 };
 class RiscV64Unit : public MachineUnit {};
 
@@ -653,6 +740,10 @@ private:
     // 生成将溢出寄存器写入栈的指令
     Register GenerateWriteCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset,
                                MachineDataType type);
+    void GenerateCopyToStackCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset, Register reg,
+                                 MachineDataType type);
+    void GenerateCopyFromStackCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset, Register reg,
+                                   MachineDataType type);
 };
 
 #endif

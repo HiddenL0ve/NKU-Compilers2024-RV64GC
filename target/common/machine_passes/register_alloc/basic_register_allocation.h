@@ -33,6 +33,7 @@ public:
 class RegisterAllocation : public MachinePass {
 private:
     void UpdateIntervalsInCurrentFunc();
+    virtual void CoalesceInCurrentFunc() = 0;
     std::queue<MachineFunction *> not_allocated_funcs;
     SpillCodeGen *spiller;
 
@@ -69,8 +70,9 @@ protected:
 
 protected:
     std::map<Register, LiveInterval> intervals;
+    // a = COPY b ==> copy_sources[a].push_back[b]
+    std::map<Register, std::vector<Register>> copy_sources;    // For coalescing
     PhysicalRegistersAllocTools *phy_regs_tools;
-    
     // 在当前函数中完成寄存器分配
     virtual bool DoAllocInCurrentFunc() = 0;
     std::map<MachineFunction *, std::map<Register, AllocResult>> alloc_result;
@@ -116,6 +118,10 @@ private:
     // 生成将溢出寄存器写入栈的指令
     virtual Register GenerateWriteCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset,
                                        MachineDataType type) = 0;
+     virtual void GenerateCopyToStackCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset,
+                                         Register reg, MachineDataType type) = 0;
+    virtual void GenerateCopyFromStackCode(std::list<MachineBaseInstruction *>::iterator &it, int raw_stk_offset,
+                                           Register reg, MachineDataType type) = 0;
 
 protected:
     MachineFunction *function;

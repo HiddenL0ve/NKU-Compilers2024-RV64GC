@@ -26,7 +26,8 @@ protected:
     // 例子1：RISCV中，a0是a0的别名；RISCV中，只有寄存器和寄存器自己构成别名
     // 例子2：x86中，eax的别名有：eax, ax, al, ah
     // 例子3：ARM中，q0的别名有：q0,d0,d1,s0,s1,s2,s3
-    virtual std::vector<int> getAliasRegs(int phy_id) = 0;
+    //virtual std::vector<int> getAliasRegs(int phy_id) = 0;
+    virtual std::vector<int> getAliasRegs(int phy_id);
 
 public:
     // 清空占用状态
@@ -36,32 +37,33 @@ public:
     }
 
     // 将区间inteval分配到物理寄存器phy_id,返回是否成功
-    bool OccupyReg(int phy_id, LiveInterval interval);
+    virtual bool OccupyReg(int phy_id, LiveInterval interval);
     // 释放物理寄存器,返回是否成功
-    bool ReleaseReg(int phy_id, LiveInterval interval);
+    virtual bool ReleaseReg(int phy_id, LiveInterval interval);
 
     // 将区间inteval分配到内存,返回是否成功
-    bool OccupyMem(int offset, LiveInterval interval);
+    virtual bool OccupyMem(int offset, int size, LiveInterval interval);
     // 释放内存,返回是否成功
-    bool ReleaseMem(int offset, LiveInterval interval);
+    virtual bool ReleaseMem(int offset, int size, LiveInterval interval);
 
     // 获取空闲的（活跃区间不冲突的）物理寄存器, 返回物理寄存器编号
-    int getIdleReg(LiveInterval interval);
+    virtual int getIdleReg(LiveInterval interval, std::vector<int> preferd_regs = {},
+                           std::vector<int> noprefer_regs = {});
     // 获取空闲的（活跃区间不冲突的）内存, 返回栈上的offset
-    int getIdleMem(LiveInterval interval);
+    virtual int getIdleMem(LiveInterval interval);
 
     // 交换分配结果（必须是一个溢出，一个不溢出), 用于在线性扫描的过程中选择溢出寄存器
-    int swapRegspill(int p_reg1, LiveInterval interval1, int offset_spill2, int size, LiveInterval interval2);
+    virtual int swapRegspill(int p_reg1, LiveInterval interval1, int offset_spill2, int size, LiveInterval interval2);
 
     // 获得所有活跃区间与interval冲突的、已经分配在同数据类型的物理寄存器中的活跃区间
     // 用于在寄存器分配过程中选择溢出区间
-    std::vector<LiveInterval> getConflictIntervals(LiveInterval interval);
+    virtual std::vector<LiveInterval> getConflictIntervals(LiveInterval interval);
 
     // 获取所有溢出寄存器占用内存大小之和
     int getSpillSize() {
         // 也许需要添加新的成员变量进行维护
-        TODO("GetSpillSize");
-        return -1;
+        //TODO("GetSpillSize");
+        return mem_occupied.size() * 4;;
     }
 };
 

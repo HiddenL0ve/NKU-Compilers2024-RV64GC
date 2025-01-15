@@ -5,6 +5,7 @@ void RegisterAllocation::Execute() {
     for (auto func : unit->functions) {
         not_allocated_funcs.push(func);
     }
+    int iterations = 0;
     while (!not_allocated_funcs.empty()) {
         current_func = not_allocated_funcs.front();
         numbertoins.clear();
@@ -17,13 +18,15 @@ void RegisterAllocation::Execute() {
 
         // 计算活跃区间
         UpdateIntervalsInCurrentFunc();
-
+        CoalesceInCurrentFunc();
         if (DoAllocInCurrentFunc()) {    // 尝试进行分配
             // 如果发生溢出，插入spill指令后将所有物理寄存器退回到虚拟寄存器，重新分配
-            spiller->ExecuteInFunc(current_func, &alloc_result[current_func]);    // 生成溢出代码
-            current_func->AddStackSize(phy_regs_tools->getSpillSize());                 // 调整栈的大小
-            not_allocated_funcs.push(current_func);                               // 重新分配直到不再spill
+        spiller->ExecuteInFunc(current_func, &alloc_result[current_func]);    // 生成溢出代码
+        current_func->AddStackSize(phy_regs_tools->getSpillSize());                 // 调整栈的大小
+         not_allocated_funcs.push(current_func);                               // 重新分配直到不再spill
+         iterations++;
         }
+       
     }
     // 重写虚拟寄存器，全部转换为物理寄存器
     VirtualRegisterRewrite(unit, alloc_result).Execute();
@@ -50,17 +53,19 @@ void InstructionNumber::ExecuteInFunc(MachineFunction *func) {
         this->numbertoins[count_begin] = InstructionNumberEntry(nullptr, true);
         count_begin++;
         for (auto ins : *mblock) {
-            this->numbertoins[count_begin] = InstructionNumberEntry(ins, false);
-            ins->setNumber(count_begin++);
+           if (ins->arch != MachineBaseInstruction::COMMENT) {
+                this->numbertoins[count_begin] = InstructionNumberEntry(ins, false);
+                ins->setNumber(count_begin++);
+            }
         }
     }
 }
 
 void RegisterAllocation::UpdateIntervalsInCurrentFunc() {
     intervals.clear();
+    copy_sources.clear();
     auto mfun = current_func;
     auto mcfg = mfun->getMachineCFG();
-
     Liveness liveness(mfun);
 
     // Note: If Change to DFS Iterator, InstructionNumber::Execute() Also need to be changed
@@ -92,6 +97,19 @@ void RegisterAllocation::UpdateIntervalsInCurrentFunc() {
         for (auto reverse_it = mcfg_node->Mblock->ReverseBegin(); reverse_it != mcfg_node->Mblock->ReverseEnd();
              ++reverse_it) {
             auto ins = *reverse_it;
+            if (ins->arch == MachineBaseInstruction::COPY) {
+                // Update copy_sources
+                // Log("COPY");
+                //std::cout<<"999"<<std::endl;
+                for (auto reg_w : ins->GetWriteReg()) {
+                    for (auto reg_r : ins->GetReadReg()) {
+                        copy_sources[*reg_w].push_back(*reg_r);
+                        copy_sources[*reg_r].push_back(*reg_w);
+                    }
+                }
+            } else if (ins->arch == MachineBaseInstruction::RiscV) {
+                // Log("RV");
+            }
             for (auto reg : ins->GetWriteReg()) {
                 // Update last_def of reg
                 last_def[*reg] = ins->getNumber();

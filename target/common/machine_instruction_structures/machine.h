@@ -3,6 +3,7 @@
 
 #include "../../../include/ir.h"
 #include "../MachineBaseInstruction.h"
+#include "../../include/dynamic_bitset.h"
 class MachineFunction;
 class MachineBlock;
 class MachineUnit;
@@ -17,9 +18,19 @@ protected:
     std::list<MachineBaseInstruction *> instructions;
 
 private:
+    std::map<Register, MachineBaseOperand *> parallel_copy_list;    // mov second to first
+private:
     MachineFunction *parent;
 
 public:
+    int loop_depth = 0;
+    std::vector<float> branch_predictor;
+
+    // virtual std::vector<int> getAllBranch() = 0;    // [0]-false, [1]-true
+    // virtual void ReverseBranch() = 0;
+    virtual std::list<MachineBaseInstruction *>::iterator getInsertBeforeBrIt() = 0;
+    void InsertParallelCopyList(Register dst, MachineBaseOperand *src) { parallel_copy_list[dst] = src; }
+    decltype(parallel_copy_list) &GetParallelCopyList() { return parallel_copy_list; }
     decltype(instructions) &GetInsList() { return instructions; }
     void clear() { instructions.clear(); }
     auto erase(decltype(instructions.begin()) it) { return instructions.erase(it); }
@@ -38,7 +49,9 @@ public:
     void pop_front() { instructions.pop_front(); }
     int getBlockInNumber() {
         for (auto ins : instructions) {
-            return ins->getNumber() - 1;
+            if (ins->arch != MachineBaseInstruction::COMMENT) {
+                 return ins->getNumber() - 1;
+            } 
         }
         ERROR("Empty block");
         // return (*(instructions.begin()))->getNumber();
@@ -46,7 +59,9 @@ public:
     int getBlockOutNumber() {
         for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
             auto ins = *it;
-            return ins->getNumber();
+            if (ins->arch != MachineBaseInstruction::COMMENT) {
+                return ins->getNumber();
+            }
         }
         ERROR("Empty block");
         // return (*(instructions.rbegin()))->getNumber();
@@ -60,102 +75,153 @@ public:
 };
 
 class MachineFunction {
-    // 你可以根据需要自行修改，新增，删除已有的成员函数和成员变量
 private:
-    // 函数名
     std::string func_name;
-    // 所属的MachineUnit
     MachineUnit *parent;
-    // 函数形参列表
     std::vector<Register> parameters;
-    // 现存的最大块编号
     int max_exist_label;
-
-    // 用于基本块相关操作的辅助类
     MachineBlockFactory *block_factory;
 
 protected:
-    // 栈大小
     int stack_sz;
-    // 传实参所用到的栈空间大小
     int para_sz;
+    bool has_inpara_instack;
     MachineCFG *mcfg;
 
 public:
-    // 更新现存的最大块编号
+    bool HasInParaInStack() { return has_inpara_instack; }
+    void SetHasInParaInStack(bool has) { has_inpara_instack = has; }
     void UpdateMaxLabel(int labelid) { max_exist_label = max_exist_label > labelid ? max_exist_label : labelid; }
-    // 获取形参列表
     const decltype(parameters) &GetParameters() { return parameters; }
-    // 增加形参列表
     void AddParameter(Register reg) { parameters.push_back(reg); }
-    // 设置栈大小
     void SetStackSize(int sz) { stack_sz = sz; }
-    // 更新传实参所用到的栈空间大小
     void UpdateParaSize(int parasz) {
         if (parasz > para_sz) {
             para_sz = parasz;
         }
     }
-    // 获取传实参所用到的栈空间大小
     int GetParaSize() { return para_sz; }
-    // 增加栈大小
     virtual void AddStackSize(int sz) { stack_sz += sz; }
-    // 获取栈空间大小（自动对齐）
     int GetStackSize() { return ((stack_sz + 15) / 16) * 16; }
-    // 获取栈底偏移
+    int GetRaOffsetToSp() { return stack_sz - 8; }
     int GetStackOffset() { return stack_sz; }
-    // 获取CFG
     MachineCFG *getMachineCFG() { return mcfg; }
-    // 获取MachineUnit
     MachineUnit *getParentMachineUnit() { return parent; }
-    // 获取函数名
     std::string getFunctionName() { return func_name; }
-
-    // 设置MachineUnit
+    
     void SetParent(MachineUnit *parent) { this->parent = parent; }
-    // 设置CFG
     void SetMachineCFG(MachineCFG *mcfg) { this->mcfg = mcfg; }
 
-    // 函数包含的所有块
+    // private:
+    // May be removed in future (?), or become private
+    // You can also iterate blocks in MachineCFG
     std::vector<MachineBlock *> blocks{};
 
 public:
-    // 获取新的虚拟寄存器
-    Register GetNewRegister(int regtype, int regwidth);
-    // 获取新的虚拟寄存器，等同于GetNewRegister(type.data_type, type.data_length)
+    Register GetNewRegister(int regtype, int regwidth, bool save_across_call = false);
     Register GetNewReg(MachineDataType type);
 
 protected:
-    // 获取新的块
+    // Only change branch instruction, don't change cfg or phi instruction
+    // Arch-relevant, should be abstract
+
+    // br_cond is still br_cond, br_uncond is still br_uncond
+    virtual void MoveAllPredecessorsBranchTargetToNewBlock(int original_target, int new_target) = 0;
+    virtual void MoveOnePredecessorBranchTargetToNewBlock(int pre, int original_target, int new_target) = 0;
+
+    // Branch instruction in block[id] will change to br_uncond,
+    // passing original branch instruction on to block[new_block]
+    virtual void YankBranchInstructionToNewBlock(int original_block_id, int new_block) = 0;
+    virtual void AppendUncondBranchInstructionToNewBlock(int new_block, int br_target) = 0;
+
+    // Only change phi instruction, don't change cfg or branch instruction
+    // Arch-irrelevant
+    void RedirectPhiNodePredecessor(int phi_block, int old_predecessor, int new_predecessor);
+
     MachineBlock *InitNewBlock();
 
 public:
+    // Not implemented by now
+    // Not only CFG but also instructions need to be changed
+    // There are helper functions (declared above) for you to change branch instructions and phi instructions
+    MachineBlock *CreateNewEmptyBlock(std::vector<int> pre, std::vector<int> succ);
+    MachineBlock *InsertNewBranchOnlyBlockBetweenEdge(int begin, int end);
+
+    // Not sure if it'll be used
+    MachineBlock *InsertNewBranchOnlyPreheader(int id, std::vector<int> pres);
+    MachineBlock *InsertNewBranchOnlySuccessorBetweenThisAndAllSuccessors(int id);
+
+public:
     MachineFunction(std::string name, MachineBlockFactory *blockfactory)
-        : func_name(name), stack_sz(0), para_sz(0), block_factory(blockfactory), max_exist_label(0){}
+        : func_name(name), stack_sz(0), para_sz(0), block_factory(blockfactory), max_exist_label(0),
+          has_inpara_instack(false) {}
 };
 
 class MachineUnit {
 public:
-    // 指令选择时，对全局变量不作任何处理，直接保留到MachineUnit中
     std::vector<Instruction> global_def{};
-
     std::vector<MachineFunction *> functions;
 };
 
+class MachineNaturalLoop {
+public:
+    int loop_id;
+    std::set<MachineBlock *> loop_nodes;
+    std::set<MachineBlock *> exits;
+    std::set<MachineBlock *> exitings;
+    std::set<MachineBlock *> latches;
+    MachineBlock *header;
+    MachineBlock *preheader;
+    MachineNaturalLoop *fa_loop;
+    void FindExitNodes(MachineCFG *C);
+};
+
+class MachineNaturalLoopForest {
+public:
+    int loop_cnt = 0;
+    MachineCFG *C;
+    std::set<MachineNaturalLoop *> loop_set;
+    std::map<MachineBlock *, MachineNaturalLoop *> header_loop_map;
+    std::vector<std::vector<MachineNaturalLoop *>> loopG;
+    void BuildLoopForest();
+
+private:
+    void CombineSameHeadLoop();
+};
+
+class MachineDominatorTree {
+public:
+    MachineCFG *C;
+    std::vector<std::vector<MachineBlock *>> dom_tree{};
+    std::vector<MachineBlock *> idom{};
+
+
+    std::vector<DynamicBitset> atdom;
+
+    void BuildDominatorTree(bool reverse = false);
+    void BuildPostDominatorTree();
+    bool IsDominate(int id1, int id2) {    // if blockid1 dominate blockid2, return true, else return false
+        return atdom[id2].getbit(id1);
+    }
+};
+
 class MachineCFG {
+    friend class MachineDominatorTree;
+
 public:
     class MachineCFGNode {
     public:
         MachineBlock *Mblock;
     };
 
-private:
+// private:
     std::map<int, MachineCFGNode *> block_map{};
     std::vector<std::vector<MachineCFGNode *>> G{}, invG{};
     int max_label;
 
 public:
     MachineCFG() : max_label(0){};
+    MachineCFGNode *ret_block;
     void AssignEmptyNode(int id, MachineBlock *Mblk);
 
     // Just modify CFG edge, no change on branch instructions
@@ -165,6 +231,22 @@ public:
     MachineCFGNode *GetNodeByBlockId(int id) { return block_map[id]; }
     std::vector<MachineCFGNode *> GetSuccessorsByBlockId(int id) { return G[id]; }
     std::vector<MachineCFGNode *> GetPredecessorsByBlockId(int id) { return invG[id]; }
+
+    MachineDominatorTree DomTree, PostDomTree;
+    void BuildDominatoorTree(bool buildPost = true) {
+        DomTree.C = this;
+        DomTree.BuildDominatorTree();
+
+        PostDomTree.C = this;
+        if (buildPost) {
+            PostDomTree.BuildPostDominatorTree();
+        }
+    }
+    MachineNaturalLoopForest LoopForest;
+    void BuildLoopForest() {
+        LoopForest.C = this;
+        LoopForest.BuildLoopForest();
+    }
 
 private:
     class Iterator {

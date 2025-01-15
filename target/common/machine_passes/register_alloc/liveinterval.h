@@ -31,10 +31,72 @@ public:
     // 检测两个活跃区间是否重叠
     // 保证两个活跃区间各个段各自都是不降序（升序）排列的
     bool operator&(const LiveInterval &that) const {
-        TODO("& operator in LiveInterval");
+        // TODO("& operator in LiveInterval");
+       if (segments.empty() || that.segments.empty())
+            return false;
+        // Log("\n[%d,%d) & [%d,%d)",segments[0].begin,segments[0].end,that.segments[0].begin,that.segments[0].end);
+        // std::cerr<<"\n["<<segments[0].begin<<","<<segments[0].end<<") & ["<<that.segments;
+        auto it = segments.begin();
+        auto jt = that.segments.begin();
+        while (1) {
+            if (*it & *jt) {
+                return true;
+            }
+            if (it->end <= jt->begin) {
+                ++it;
+                if (it == segments.end()) {
+                    return false;
+                }
+            } else if (jt->end <= it->begin) {
+                ++jt;
+                if (jt == that.segments.end()) {
+                    return false;
+                }
+            } else {
+                ERROR("LiveInterval::operator&: Error");
+            }
+        }
         return false;
     }
-
+     bool operator==(const LiveInterval &that) const {
+        // TODO : Judge if *this and that are equal
+        if (reg == that.reg) {
+            Assert(segments == that.segments);
+            return true;
+        } else {
+            return false;
+        }
+        return reg == that.reg;    // && segments == that.segments;
+    }
+     LiveInterval operator|(const LiveInterval &that) const {
+        LiveInterval ret(this->reg);
+        ret.reference_count = this->reference_count + that.reference_count - 2;
+        auto it = segments.begin();
+        auto jt = that.segments.begin();
+        while (1) {
+            if (it == segments.end() && jt == that.segments.end()) {
+                break;
+            }
+            if (it == segments.end()) {
+                ret.segments.push_back(*jt);
+                ++jt;
+                continue;
+            }
+            if (jt == that.segments.end()) {
+                ret.segments.push_back(*it);
+                ++it;
+                continue;
+            }
+            if (it->begin < jt->begin) {
+                ret.segments.push_back(*it);
+                ++it;
+            } else {
+                ret.segments.push_back(*jt);
+                ++jt;
+            }
+        }
+        return ret;
+    }
     // 更新引用计数
     void IncreaseReferenceCount(int count) { reference_count += count; }
     int getReferenceCount() { return reference_count; }
@@ -53,6 +115,15 @@ public:
     void PushFront(int begin, int end) { segments.push_front({begin = begin, end = end}); }
     void SetMostBegin(int begin) { segments.begin()->begin = begin; }
 
+    void Print() {
+        PRINT("%d %d ", reg.is_virtual, reg.reg_no);
+        // std::cerr<<reg.is_virtual<<" "<<reg.reg_no<<" ";
+        for (auto seg : segments) {
+            PRINT("[%d,%d) ", seg.begin, seg.end);
+            // std::cerr<<"["<<seg.begin<<","<<seg.end<<") ";
+        }
+        PRINT("\n");
+    }
     // 可以直接 for(auto segment : liveinterval)
     decltype(segments.begin()) begin() { return segments.begin(); }
     decltype(segments.end()) end() { return segments.end(); }

@@ -224,21 +224,36 @@ struct MachineImmediateDouble : public MachineBaseOperand {
 
 class MachineBaseInstruction {
 public:
-    enum { ARM = 0, RiscV, PHI};
+    enum { ARM = 0, RiscV, PHI,COPY,COMMENT, SELECT, NOP};
     const int arch;
 
 private:
     int ins_number; // 指令编号, 用于活跃区间计算
-
+    bool no_schedule;
 public:
     void setNumber(int ins_number) { this->ins_number = ins_number; }
     int getNumber() { return ins_number; }
+    void SetNoSchedule(bool no_schedule) { this->no_schedule = no_schedule; }
     MachineBaseInstruction(int arch) : arch(arch) {}
     virtual std::vector<Register *> GetReadReg() = 0;     // 获得该指令所有读的寄存器
     virtual std::vector<Register *> GetWriteReg() = 0;    // 获得该指令所有写的寄存器
     virtual int GetLatency() = 0;    // 如果你不打算实现指令调度优化，可以忽略该函数
 };
+class MachineComment : public MachineBaseInstruction {
+private:
+    std::string comment;
 
+#ifdef ENABLE_COMMENT
+public:
+#endif
+    MachineComment(std::string comment) : MachineBaseInstruction(MachineBaseInstruction::COMMENT), comment(comment) {}
+
+public:
+    virtual std::vector<Register *> GetReadReg() { return std::vector<Register *>(); }
+    virtual std::vector<Register *> GetWriteReg() { return std::vector<Register *>(); }
+    std::string GetComment() { return comment; }
+    int GetLatency() { return 0; }
+};
 // 如果你没有实现优化的进阶要求，可以忽略下面的指令类
 class MachinePhiInstruction : public MachineBaseInstruction {
 private:
@@ -273,4 +288,33 @@ public:
     void pushPhiList(int label, MachineBaseOperand *op) { phi_list.push_back(std::make_pair(label, op)); }
     int GetLatency() { return 0; }
 };
+// %x: type = COPY type %y: type
+class MachineCopyInstruction : public MachineBaseInstruction {
+private:
+    MachineDataType copy_type;
+    MachineBaseOperand *src;
+    MachineBaseOperand *dst;
+
+public:
+    std::vector<Register *> GetReadReg() {
+        if (src->op_type == MachineBaseOperand::REG)
+            return std::vector<Register *>({&(((MachineRegister *)src)->reg)});
+        return std::vector<Register *>();
+    }
+    std::vector<Register *> GetWriteReg() {
+        assert(dst->op_type == MachineBaseOperand::REG);
+        return std::vector<Register *>({&(((MachineRegister *)dst)->reg)});
+    }
+
+    MachineCopyInstruction(MachineBaseOperand *src, MachineBaseOperand *dst, MachineDataType copy_type)
+        : copy_type(copy_type), src(src), dst(dst), MachineBaseInstruction(MachineBaseInstruction::COPY) {}
+    void output(std::ostream &s) {
+        s << dst->toString() << " = " << copy_type.toString() << " COPY " << src->toString() << "\n";
+    }
+    MachineBaseOperand *GetSrc() { return src; }
+    MachineBaseOperand *GetDst() { return dst; }
+    MachineDataType GetCopyType() { return copy_type; }
+    int GetLatency() { return 1; }
+};
+
 #endif
